@@ -1,0 +1,90 @@
+import createDebug from 'debug';
+import type {
+  ForgejoPluginConfig,
+  PluginContext,
+  TemplateContext,
+} from './types.js';
+import { ForgejoApiClient } from './api-client.js';
+import { compileTemplate } from './utils/template.js';
+import { resolveConfig } from './resolve-config.js';
+
+const debug = createDebug('forgejo-semantic-release:fail');
+
+/**
+ * Format an error for display in the issue body
+ */
+function formatError(error: Error): { message: string; details?: string } {
+  return {
+    message: error.message,
+    details: (error as Error & { details?: string }).details,
+  };
+}
+
+/**
+ * Fail hook - create or update an issue documenting release failure
+ *
+ * This hook:
+ * 1. Searches for an existing failure issue
+ * 2. Creates a new issue or adds a comment to existing one
+ * 3. Applies labels and assignees
+ */
+export async function fail(
+  pluginConfig: ForgejoPluginConfig,
+  context: PluginContext
+): Promise<void> {
+  const { logger, errors, branch, commits, cwd } = context;
+  const env = process.env;
+
+  // Use stored config from verify or resolve it
+  const config = context.forgejoConfig || resolveConfig(pluginConfig, env, cwd);
+
+  // If we don't have valid config, we can't create issues
+  if (!config.forgejoToken || !config.forgejoUrl) {
+    logger.warn('Cannot create failure issue: missing Forgejo configuration');
+    return;
+  }
+
+  const client = new ForgejoApiClient(config);
+
+  logger.log('Creating failure issue...');
+
+  // Prepare template context
+  const templateContext: Partial<TemplateContext> = {
+    branch: {
+      name: branch.name,
+      prerelease: branch.prerelease,
+      channel: branch.channel,
+    },
+    commits: commits || [],
+    errors: (errors || []).map(formatError) as unknown as Error[],
+  };
+
+  // Generate failure content
+  const failureBody = compileTemplate(config.failComment, templateContext);
+
+  try {
+    // Search for existing failure issue
+    const existingIssue = await client.findIssueByTitle(config.failTitle, 'open');
+
+    if (existingIssue) {
+      // Add comment to existing issue
+      await client.createIssueComment(existingIssue.number, failureBody);
+      logger.log(`Updated existing failure issue #${existingIssue.number}`);
+      debug('Added comment to issue #%d', existingIssue.number);
+    } else {
+      // Create new issue
+      const issue = await client.createIssue({
+        title: config.failTitle,
+        body: failureBody,
+        labels: config.labels,
+        assignees: config.assignees,
+      });
+      logger.log(`Created failure issue #${issue.number}: ${issue.html_url}`);
+      debug('Created issue #%d', issue.number);
+    }
+  } catch (error) {
+    // Log error but don't throw - we don't want to fail the release process further
+    logger.warn(`Failed to create/update failure issue: ${(error as Error).message}`);
+    debug('Failure issue creation failed: %s', (error as Error).message);
+  }
+}
