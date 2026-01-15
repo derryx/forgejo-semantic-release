@@ -24,11 +24,10 @@ export async function publish(
   context: PluginContext
 ): Promise<PublishResult> {
   const { logger, nextRelease, branch, cwd } = context;
-  const env = process.env;
 
-  // Use stored config from verify or resolve it
-  const config = context.forgejoConfig || resolveConfig(pluginConfig, env, cwd);
-  const client = new ForgejoApiClient(config);
+  // Use stored config and client from verify, or create new ones as fallback
+  const config = context.forgejoConfig || resolveConfig(pluginConfig, process.env, cwd);
+  const client = context.forgejoClient || new ForgejoApiClient(config);
 
   const { gitTag, gitHead, notes } = nextRelease!;
   const isPrerelease = Boolean(branch.prerelease);

@@ -33,10 +33,9 @@ export async function fail(
   context: PluginContext
 ): Promise<void> {
   const { logger, errors, branch, commits, cwd } = context;
-  const env = process.env;
 
-  // Use stored config from verify or resolve it
-  const config = context.forgejoConfig || resolveConfig(pluginConfig, env, cwd);
+  // Use stored config and client from verify, or create new ones as fallback
+  const config = context.forgejoConfig || resolveConfig(pluginConfig, process.env, cwd);
 
   // If we don't have valid config, we can't create issues
   if (!config.forgejoToken || !config.forgejoUrl) {
@@ -44,7 +43,7 @@ export async function fail(
     return;
   }
 
-  const client = new ForgejoApiClient(config);
+  const client = context.forgejoClient || new ForgejoApiClient(config);
 
   logger.log('Creating failure issue...');
 

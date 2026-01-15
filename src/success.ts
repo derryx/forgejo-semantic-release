@@ -4,6 +4,7 @@ import type {
   PluginContext,
   TemplateContext,
   ForgejoIssue,
+  Logger,
 } from './types.js';
 import { ForgejoApiClient } from './api-client.js';
 import { compileTemplate, evaluateCondition } from './utils/template.js';
@@ -101,18 +102,16 @@ export async function success(
   context: PluginContext
 ): Promise<void> {
   const { logger, commits, releases, nextRelease, branch, lastRelease, cwd } = context;
-  const env = process.env;
 
-  // Use stored config from verify or resolve it
-  const config = context.forgejoConfig || resolveConfig(pluginConfig, env, cwd);
+  // Use stored config and client from verify, or create new ones as fallback
+  const config = context.forgejoConfig || resolveConfig(pluginConfig, process.env, cwd);
+  const client = context.forgejoClient || new ForgejoApiClient(config);
 
   // Check if success comments are disabled
   if (config.successComment === false) {
     logger.log('Success comments are disabled, skipping...');
     return;
   }
-
-  const client = new ForgejoApiClient(config);
 
   // Extract issue numbers from commits
   const issueNumbers = extractIssueNumbers(commits || []);

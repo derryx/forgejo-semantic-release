@@ -1,4 +1,4 @@
-import got, { type Got, type Options } from 'got';
+import got, { type Got } from 'got';
 import FormData from 'form-data';
 import { createReadStream } from 'node:fs';
 import { lookup } from 'mime-types';
@@ -27,7 +27,7 @@ export class ForgejoApiClient {
     this.owner = config.repositoryOwner;
     this.repo = config.repositoryName;
 
-    const options: Options = {
+    this.client = got.extend({
       prefixUrl: baseUrl,
       headers: {
         Authorization: `token ${config.forgejoToken}`,
@@ -39,9 +39,7 @@ export class ForgejoApiClient {
       timeout: {
         request: 30000,
       },
-    };
-
-    this.client = got.extend(options);
+    });
     debug('API client initialized for %s/%s at %s', this.owner, this.repo, baseUrl);
   }
 
@@ -138,16 +136,26 @@ export class ForgejoApiClient {
   }
 
   /**
-   * Search for issues
+   * Search for issues with pagination support
    */
   async searchIssues(
     state: 'open' | 'closed' | 'all' = 'all',
-    labels?: string[]
+    options: {
+      labels?: string[];
+      query?: string;
+      limit?: number;
+    } = {}
   ): Promise<ForgejoIssue[]> {
-    debug('Searching issues with state=%s', state);
-    const searchParams: Record<string, string> = { state };
-    if (labels && labels.length > 0) {
-      searchParams.labels = labels.join(',');
+    debug('Searching issues with state=%s, query=%s', state, options.query);
+    const searchParams: Record<string, string | number> = {
+      state,
+      limit: options.limit || 50,
+    };
+    if (options.labels && options.labels.length > 0) {
+      searchParams.labels = options.labels.join(',');
+    }
+    if (options.query) {
+      searchParams.q = options.query;
     }
     return this.client
       .get(`repos/${this.owner}/${this.repo}/issues`, { searchParams })
@@ -155,14 +163,22 @@ export class ForgejoApiClient {
   }
 
   /**
-   * Find an issue by title (exact match)
+   * Find an issue by exact title match
+   * Uses search API with title query for efficiency
    */
   async findIssueByTitle(
     title: string,
     state: 'open' | 'closed' | 'all' = 'open'
   ): Promise<ForgejoIssue | null> {
     debug('Finding issue with title: %s', title);
-    const issues = await this.searchIssues(state);
+
+    // Use search query to narrow down results
+    const issues = await this.searchIssues(state, {
+      query: title,
+      limit: 100,
+    });
+
+    // Filter for exact title match (search API does partial matching)
     return issues.find((issue) => issue.title === title) || null;
   }
 

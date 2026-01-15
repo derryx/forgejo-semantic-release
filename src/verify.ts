@@ -1,6 +1,6 @@
 import AggregateError from 'aggregate-error';
 import createDebug from 'debug';
-import type { ForgejoPluginConfig, PluginContext, Logger } from './types.js';
+import type { ForgejoPluginConfig, PluginContext } from './types.js';
 import { resolveConfig, validateConfig } from './resolve-config.js';
 import { ForgejoApiClient } from './api-client.js';
 import { getError } from './get-error.js';
@@ -104,7 +104,8 @@ export async function verifyConditions(
     throw new AggregateError(errors);
   }
 
-  // Store resolved config for other hooks
+  // Store resolved config and client for other hooks
   context.forgejoConfig = config;
+  context.forgejoClient = client;
   debug('Verification complete');
 }
