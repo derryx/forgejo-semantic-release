@@ -42,22 +42,36 @@ describe('verifyConditions', () => {
   });
 
   it('should throw ENOFORGEJOTOKEN when token is missing', async () => {
-    const context = createMockContext();
+    const originalForgejo = process.env.FORGEJO_TOKEN;
+    const originalGitea = process.env.GITEA_TOKEN;
+    delete process.env.FORGEJO_TOKEN;
+    delete process.env.GITEA_TOKEN;
 
-    let thrownError: Error | undefined;
     try {
-      await verifyConditions(
-        {
-          forgejoUrl: 'https://forgejo.example.com',
-        },
-        context
-      );
-    } catch (error) {
-      thrownError = error as Error;
-    }
+      const context = createMockContext();
 
-    expect(thrownError).toBeDefined();
-    expect(thrownError?.message).toContain('No Forgejo token specified');
+      let thrownError: Error | undefined;
+      try {
+        await verifyConditions(
+          {
+            forgejoUrl: 'https://forgejo.example.com',
+          },
+          context
+        );
+      } catch (error) {
+        thrownError = error as Error;
+      }
+
+      expect(thrownError).toBeDefined();
+      expect(thrownError?.message).toContain('No Forgejo token specified');
+    } finally {
+      if (originalForgejo !== undefined) {
+        process.env.FORGEJO_TOKEN = originalForgejo;
+      }
+      if (originalGitea !== undefined) {
+        process.env.GITEA_TOKEN = originalGitea;
+      }
+    }
   });
 
   it('should throw EINVALIDFORGEJOTOKEN when authentication fails', async () => {
