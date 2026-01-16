@@ -3,8 +3,11 @@
   "plugins": [
     "@semantic-release/commit-analyzer",
     "@semantic-release/release-notes-generator",
-    ["./dist/index.js", {
-      "assets": []
-    }]
+    [
+      "./dist/index.cjs",
+      {
+        "assets": []
+      }
+    ]
   ]
 }

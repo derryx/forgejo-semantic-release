@@ -1,13 +1,9 @@
 import createDebug from 'debug';
-import type {
-  ForgejoPluginConfig,
-  PluginContext,
-  PublishResult,
-} from './types.js';
 import { ForgejoApiClient } from './api-client.js';
-import { globAssets } from './glob-assets.js';
 import { getError } from './get-error.js';
+import { globAssets } from './glob-assets.js';
 import { resolveConfig } from './resolve-config.js';
+import type { ForgejoPluginConfig, PluginContext, PublishResult } from './types.js';
 
 const debug = createDebug('forgejo-semantic-release:publish');
 

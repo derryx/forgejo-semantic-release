@@ -1,5 +1,5 @@
-import { describe, it, expect, vi } from 'vitest';
 import path from 'node:path';
+import { describe, it, expect, vi } from 'vitest';
 import { globAssets } from '../src/glob-assets.js';
 
 const fixturesDir = path.resolve(__dirname, 'fixtures');
@@ -105,9 +105,7 @@ describe('globAssets', () => {
       );
 
       expect(assets).toHaveLength(0);
-      expect(warnLogger.warn).toHaveBeenCalledWith(
-        expect.stringContaining('No files found')
-      );
+      expect(warnLogger.warn).toHaveBeenCalledWith(expect.stringContaining('No files found'));
     });
 
     it('should skip non-matching glob patterns', async () => {

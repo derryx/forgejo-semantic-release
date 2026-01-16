@@ -1,4 +1,5 @@
-import { MockAgent, setGlobalDispatcher, getGlobalDispatcher, Dispatcher } from 'undici';
+import type { Dispatcher } from 'undici';
+import { MockAgent, setGlobalDispatcher, getGlobalDispatcher } from 'undici';
 
 const DEFAULT_BASE_URL = 'https://forgejo.example.com';
 
@@ -42,6 +43,3 @@ export function cleanupMock(): void {
 export function apiPath(path: string): string {
   return `/api/v1${path}`;
 }
-
-// Re-export for backwards compatibility
-export { mockAgent };

@@ -1,5 +1,5 @@
-import { template as lodashTemplate } from 'lodash-es';
 import createDebug from 'debug';
+import { template as lodashTemplate } from 'lodash-es';
 import type { TemplateContext } from '../types.js';
 
 const debug = createDebug('forgejo-semantic-release:template');
@@ -7,10 +7,7 @@ const debug = createDebug('forgejo-semantic-release:template');
 /**
  * Compile and execute a Lodash template with the given context
  */
-export function compileTemplate(
-  templateString: string,
-  context: Partial<TemplateContext>
-): string {
+export function compileTemplate(templateString: string, context: Partial<TemplateContext>): string {
   try {
     const compiled = lodashTemplate(templateString);
     return compiled(context);

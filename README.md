@@ -6,6 +6,7 @@
 A [semantic-release](https://github.com/semantic-release/semantic-release) plugin for [Forgejo](https://forgejo.org/) (and [Gitea](https://gitea.io/)).
 
 This plugin enables automated releases on Forgejo/Gitea instances, including:
+
 - Creating releases with release notes
 - Uploading release assets (binaries, archives, etc.)
 - Commenting on resolved issues and pull requests
@@ -21,29 +22,30 @@ npm install forgejo-semantic-release --save-dev
 
 ### Environment Variables
 
-| Variable | Description |
-|----------|-------------|
+| Variable                         | Description                                                       |
+| -------------------------------- | ----------------------------------------------------------------- |
 | `FORGEJO_TOKEN` or `GITEA_TOKEN` | **Required.** Personal access token with `write:repository` scope |
-| `FORGEJO_URL` or `GITEA_URL` | Forgejo/Gitea server URL. Optional if detectable from git remote |
+| `FORGEJO_URL` or `GITEA_URL`     | Forgejo/Gitea server URL. Optional if detectable from git remote  |
 
 ### Plugin Options
 
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `forgejoUrl` | `string` | From env or git remote | Forgejo server URL |
-| `forgejoToken` | `string` | From env | API authentication token |
-| `assets` | `string \| string[] \| AssetConfig[]` | `[]` | Glob patterns for release assets |
-| `successComment` | `string \| false` | See below | Template for success comments |
-| `successCommentCondition` | `string \| false` | `false` | Condition for posting success comments |
-| `failComment` | `string` | See below | Template for failure issue body |
-| `failTitle` | `string` | `"The automated release failed :rotating_light:"` | Title for failure issues |
-| `labels` | `string[]` | `["semantic-release"]` | Labels for failure issues |
-| `assignees` | `string[]` | `[]` | Assignees for failure issues |
-| `releasedLabels` | `string[] \| false` | `false` | Labels to add to released issues/PRs |
+| Option                    | Type                                  | Default                                           | Description                            |
+| ------------------------- | ------------------------------------- | ------------------------------------------------- | -------------------------------------- |
+| `forgejoUrl`              | `string`                              | From env or git remote                            | Forgejo server URL                     |
+| `forgejoToken`            | `string`                              | From env                                          | API authentication token               |
+| `assets`                  | `string \| string[] \| AssetConfig[]` | `[]`                                              | Glob patterns for release assets       |
+| `successComment`          | `string \| false`                     | See below                                         | Template for success comments          |
+| `successCommentCondition` | `string \| false`                     | `false`                                           | Condition for posting success comments |
+| `failComment`             | `string`                              | See below                                         | Template for failure issue body        |
+| `failTitle`               | `string`                              | `"The automated release failed :rotating_light:"` | Title for failure issues               |
+| `labels`                  | `string[]`                            | `["semantic-release"]`                            | Labels for failure issues              |
+| `assignees`               | `string[]`                            | `[]`                                              | Assignees for failure issues           |
+| `releasedLabels`          | `string[] \| false`                   | `false`                                           | Labels to add to released issues/PRs   |
 
 ### Asset Configuration
 
 Assets can be specified as:
+
 - A glob pattern string: `"dist/*.zip"`
 - An array of glob patterns: `["dist/*.zip", "dist/*.tar.gz"]`
 - An array of asset objects:
@@ -58,6 +60,7 @@ Assets can be specified as:
 ```
 
 Asset object properties:
+
 - `path` (required): Glob pattern or file path
 - `name`: Override the filename for upload
 - `type`: MIME type (auto-detected if omitted)
@@ -86,12 +89,12 @@ Asset object properties:
   "plugins": [
     "@semantic-release/commit-analyzer",
     "@semantic-release/release-notes-generator",
-    ["forgejo-semantic-release", {
-      "assets": [
-        "dist/*.zip",
-        "dist/*.tar.gz"
-      ]
-    }]
+    [
+      "forgejo-semantic-release",
+      {
+        "assets": ["dist/*.zip", "dist/*.tar.gz"]
+      }
+    ]
   ]
 }
 ```
@@ -105,16 +108,16 @@ Asset object properties:
     "@semantic-release/commit-analyzer",
     "@semantic-release/release-notes-generator",
     "@semantic-release/changelog",
-    ["forgejo-semantic-release", {
-      "assets": [
-        { "path": "dist/*.zip" },
-        { "path": "dist/*.tar.gz" }
-      ],
-      "successComment": ":tada: This ${issue.pull_request ? 'PR is included' : 'issue has been resolved'} in version ${nextRelease.version}!\n\nSee the [release](${releases[0].url}) for details.",
-      "failTitle": "Release pipeline failed",
-      "labels": ["semantic-release", "automation"],
-      "releasedLabels": ["released"]
-    }]
+    [
+      "forgejo-semantic-release",
+      {
+        "assets": [{ "path": "dist/*.zip" }, { "path": "dist/*.tar.gz" }],
+        "successComment": ":tada: This ${issue.pull_request ? 'PR is included' : 'issue has been resolved'} in version ${nextRelease.version}!\n\nSee the [release](${releases[0].url}) for details.",
+        "failTitle": "Release pipeline failed",
+        "labels": ["semantic-release", "automation"],
+        "releasedLabels": ["released"]
+      }
+    ]
   ]
 }
 ```
@@ -126,6 +129,7 @@ This plugin implements four semantic-release lifecycle hooks:
 ### verifyConditions
 
 Validates the plugin configuration and verifies access to the Forgejo API:
+
 - Checks for required authentication token
 - Tests API connectivity
 - Verifies repository access and push permissions
@@ -133,6 +137,7 @@ Validates the plugin configuration and verifies access to the Forgejo API:
 ### publish
 
 Creates a new release on Forgejo:
+
 - Creates a release for the git tag
 - Uploads configured release assets
 - Returns the release URL
@@ -140,6 +145,7 @@ Creates a new release on Forgejo:
 ### success
 
 Runs after a successful release:
+
 - Extracts issue/PR references from commit messages (e.g., `fixes #123`, `closes #456`)
 - Posts success comments on resolved issues and PRs
 - Optionally adds labels to released issues/PRs
@@ -148,6 +154,7 @@ Runs after a successful release:
 ### fail
 
 Runs when the release process fails:
+
 - Creates a new issue documenting the failure, or
 - Adds a comment to an existing failure issue
 - Includes error details and branch information
@@ -156,15 +163,15 @@ Runs when the release process fails:
 
 Success comments and failure issues support [Lodash template](https://lodash.com/docs/#template) syntax with access to the following variables:
 
-| Variable | Description |
-|----------|-------------|
-| `branch` | Branch configuration (`name`, `prerelease`, `channel`) |
-| `lastRelease` | Previous release info (`version`, `gitTag`, `gitHead`) |
+| Variable      | Description                                                        |
+| ------------- | ------------------------------------------------------------------ |
+| `branch`      | Branch configuration (`name`, `prerelease`, `channel`)             |
+| `lastRelease` | Previous release info (`version`, `gitTag`, `gitHead`)             |
 | `nextRelease` | New release info (`version`, `gitTag`, `gitHead`, `notes`, `type`) |
-| `commits` | Array of commits in this release |
-| `releases` | Array of published releases |
-| `issue` | Current issue object (success comments only) |
-| `errors` | Array of errors (fail comments only) |
+| `commits`     | Array of commits in this release                                   |
+| `releases`    | Array of published releases                                        |
+| `issue`       | Current issue object (success comments only)                       |
+| `errors`      | Array of errors (fail comments only)                               |
 
 ### Default Success Comment
 
@@ -259,16 +266,16 @@ release:
 
 ## Differences from GitHub/GitLab Plugins
 
-| Feature | forgejo-semantic-release | @semantic-release/github | @semantic-release/gitlab |
-|---------|-------------------------|-------------------------|-------------------------|
-| Create releases | Yes | Yes | Yes |
-| Upload assets | Yes | Yes | Yes |
-| Success comments | Yes | Yes | Yes |
-| Failure issues | Yes | Yes | Yes |
-| Draft releases | No | Yes | No |
-| Discussions | No | Yes | No |
-| Milestones | No | No | Yes |
-| addChannel hook | No | Yes | No |
+| Feature          | forgejo-semantic-release | @semantic-release/github | @semantic-release/gitlab |
+| ---------------- | ------------------------ | ------------------------ | ------------------------ |
+| Create releases  | Yes                      | Yes                      | Yes                      |
+| Upload assets    | Yes                      | Yes                      | Yes                      |
+| Success comments | Yes                      | Yes                      | Yes                      |
+| Failure issues   | Yes                      | Yes                      | Yes                      |
+| Draft releases   | No                       | Yes                      | No                       |
+| Discussions      | No                       | Yes                      | No                       |
+| Milestones       | No                       | No                       | Yes                      |
+| addChannel hook  | No                       | Yes                      | No                       |
 
 ## Troubleshooting
 
@@ -279,12 +286,14 @@ Ensure you have set either `FORGEJO_TOKEN` or `GITEA_TOKEN` environment variable
 ### "Unable to determine Forgejo server URL"
 
 Either:
+
 - Set `FORGEJO_URL` or `GITEA_URL` environment variable
 - Ensure your git remote origin is properly configured (e.g., `git remote set-url origin https://forgejo.example.com/owner/repo.git`)
 
 ### "Insufficient repository permissions"
 
 The token must have write access to the repository. Verify:
+
 - The token has `write:repository` scope
 - The user associated with the token has push access to the repository
 

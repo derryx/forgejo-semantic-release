@@ -19,9 +19,4 @@ export { success } from './success.js';
 export { fail } from './fail.js';
 
 // Re-export types for consumers
-export type {
-  ForgejoPluginConfig,
-  AssetConfig,
-  ResolvedConfig,
-  PublishResult,
-} from './types.js';
+export type { ForgejoPluginConfig, AssetConfig, ResolvedConfig, PublishResult } from './types.js';

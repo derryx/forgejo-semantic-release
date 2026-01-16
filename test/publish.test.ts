@@ -1,9 +1,9 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import path from 'node:path';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { ForgejoApiClient } from '../src/api-client.js';
 import { publish } from '../src/publish.js';
 import { createMockContext, createMockConfig, mockResponses } from './helpers/mock-context.js';
 import { setupMockAgent, cleanupMock, getMockPool, apiPath } from './helpers/mock-forgejo.js';
-import { ForgejoApiClient } from '../src/api-client.js';
 
 describe('publish', () => {
   const baseUrl = 'https://forgejo.example.com';
@@ -18,7 +18,11 @@ describe('publish', () => {
 
   it('should create a release', async () => {
     const pool = getMockPool(baseUrl);
-    pool.intercept({ path: apiPath('/repos/owner/repo/releases'), method: 'POST' })
+    pool
+      .intercept({
+        path: apiPath('/repos/owner/repo/releases'),
+        method: 'POST',
+      })
       .reply(201, mockResponses.release);
 
     const config = createMockConfig();
@@ -39,7 +43,11 @@ describe('publish', () => {
 
   it('should create a prerelease for prerelease branches', async () => {
     const pool = getMockPool(baseUrl);
-    pool.intercept({ path: apiPath('/repos/owner/repo/releases'), method: 'POST' })
+    pool
+      .intercept({
+        path: apiPath('/repos/owner/repo/releases'),
+        method: 'POST',
+      })
       .reply(201, { ...mockResponses.release, prerelease: true });
 
     const config = createMockConfig();
@@ -60,12 +68,18 @@ describe('publish', () => {
 
   it('should upload assets with the release', async () => {
     const pool = getMockPool(baseUrl);
-    pool.intercept({ path: apiPath('/repos/owner/repo/releases'), method: 'POST' })
+    pool
+      .intercept({
+        path: apiPath('/repos/owner/repo/releases'),
+        method: 'POST',
+      })
       .reply(201, mockResponses.release);
-    pool.intercept({
-      path: (path) => path.startsWith(apiPath('/repos/owner/repo/releases/1/assets')),
-      method: 'POST',
-    }).reply(201, mockResponses.asset);
+    pool
+      .intercept({
+        path: (path) => path.startsWith(apiPath('/repos/owner/repo/releases/1/assets')),
+        method: 'POST',
+      })
+      .reply(201, mockResponses.asset);
 
     const config = createMockConfig({
       assets: [{ path: 'test/fixtures/upload.txt' }],
@@ -84,12 +98,18 @@ describe('publish', () => {
 
   it('should continue if asset upload fails', async () => {
     const pool = getMockPool(baseUrl);
-    pool.intercept({ path: apiPath('/repos/owner/repo/releases'), method: 'POST' })
+    pool
+      .intercept({
+        path: apiPath('/repos/owner/repo/releases'),
+        method: 'POST',
+      })
       .reply(201, mockResponses.release);
-    pool.intercept({
-      path: (path) => path.startsWith(apiPath('/repos/owner/repo/releases/1/assets')),
-      method: 'POST',
-    }).reply(500, { message: 'Internal Server Error' });
+    pool
+      .intercept({
+        path: (path) => path.startsWith(apiPath('/repos/owner/repo/releases/1/assets')),
+        method: 'POST',
+      })
+      .reply(500, { message: 'Internal Server Error' });
 
     const config = createMockConfig({
       assets: [{ path: 'test/fixtures/upload.txt' }],
@@ -109,7 +129,11 @@ describe('publish', () => {
 
   it('should throw error when release creation fails', async () => {
     const pool = getMockPool(baseUrl);
-    pool.intercept({ path: apiPath('/repos/owner/repo/releases'), method: 'POST' })
+    pool
+      .intercept({
+        path: apiPath('/repos/owner/repo/releases'),
+        method: 'POST',
+      })
       .reply(422, { message: 'Tag already exists' });
 
     const config = createMockConfig();
@@ -123,7 +147,11 @@ describe('publish', () => {
 
   it('should store release in context for success hook', async () => {
     const pool = getMockPool(baseUrl);
-    pool.intercept({ path: apiPath('/repos/owner/repo/releases'), method: 'POST' })
+    pool
+      .intercept({
+        path: apiPath('/repos/owner/repo/releases'),
+        method: 'POST',
+      })
       .reply(201, mockResponses.release);
 
     const config = createMockConfig();
@@ -139,7 +167,11 @@ describe('publish', () => {
 
   it('should work without pre-stored config (fallback mode)', async () => {
     const pool = getMockPool(baseUrl);
-    pool.intercept({ path: apiPath('/repos/owner/repo/releases'), method: 'POST' })
+    pool
+      .intercept({
+        path: apiPath('/repos/owner/repo/releases'),
+        method: 'POST',
+      })
       .reply(201, mockResponses.release);
 
     const context = createMockContext();

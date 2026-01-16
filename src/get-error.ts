@@ -4,13 +4,10 @@ import { ERROR_DEFINITIONS, type ErrorCode } from './definitions/errors.js';
 /**
  * Interpolate context values into a string template
  */
-function interpolate(
-  str: string,
-  context: Record<string, string | number | undefined>
-): string {
-  return str.replace(/\{(\w+)\}/g, (_, key) => {
+function interpolate(str: string, context: Record<string, string | number | undefined>): string {
+  return str.replaceAll(/\{(\w+)\}/g, (_, key) => {
     const value = context[key];
-    return value !== undefined ? String(value) : `{${key}}`;
+    return value === undefined ? `{${key}}` : String(value);
   });
 }
 

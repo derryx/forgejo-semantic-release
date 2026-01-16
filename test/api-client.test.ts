@@ -19,8 +19,7 @@ describe('ForgejoApiClient', () => {
   describe('getCurrentUser', () => {
     it('should return the authenticated user', async () => {
       const pool = getMockPool(baseUrl);
-      pool.intercept({ path: apiPath('/user'), method: 'GET' })
-        .reply(200, mockResponses.user);
+      pool.intercept({ path: apiPath('/user'), method: 'GET' }).reply(200, mockResponses.user);
 
       const user = await client.getCurrentUser();
 
@@ -30,7 +29,8 @@ describe('ForgejoApiClient', () => {
 
     it('should throw on authentication failure', async () => {
       const pool = getMockPool(baseUrl);
-      pool.intercept({ path: apiPath('/user'), method: 'GET' })
+      pool
+        .intercept({ path: apiPath('/user'), method: 'GET' })
         .reply(401, { message: 'Unauthorized' });
 
       await expect(client.getCurrentUser()).rejects.toThrow();
@@ -40,7 +40,8 @@ describe('ForgejoApiClient', () => {
   describe('getRepository', () => {
     it('should return repository information', async () => {
       const pool = getMockPool(baseUrl);
-      pool.intercept({ path: apiPath('/repos/owner/repo'), method: 'GET' })
+      pool
+        .intercept({ path: apiPath('/repos/owner/repo'), method: 'GET' })
         .reply(200, mockResponses.repository);
 
       const repo = await client.getRepository('owner', 'repo');
@@ -51,7 +52,8 @@ describe('ForgejoApiClient', () => {
 
     it('should throw on repository not found', async () => {
       const pool = getMockPool(baseUrl);
-      pool.intercept({ path: apiPath('/repos/owner/nonexistent'), method: 'GET' })
+      pool
+        .intercept({ path: apiPath('/repos/owner/nonexistent'), method: 'GET' })
         .reply(404, { message: 'Not Found' });
 
       await expect(client.getRepository('owner', 'nonexistent')).rejects.toThrow();
@@ -70,7 +72,11 @@ describe('ForgejoApiClient', () => {
       };
 
       const pool = getMockPool(baseUrl);
-      pool.intercept({ path: apiPath('/repos/owner/repo/releases'), method: 'POST' })
+      pool
+        .intercept({
+          path: apiPath('/repos/owner/repo/releases'),
+          method: 'POST',
+        })
         .reply(201, mockResponses.release);
 
       const release = await client.createRelease(releaseOptions);
@@ -81,7 +87,11 @@ describe('ForgejoApiClient', () => {
 
     it('should throw on release creation failure', async () => {
       const pool = getMockPool(baseUrl);
-      pool.intercept({ path: apiPath('/repos/owner/repo/releases'), method: 'POST' })
+      pool
+        .intercept({
+          path: apiPath('/repos/owner/repo/releases'),
+          method: 'POST',
+        })
         .reply(422, { message: 'Tag already exists' });
 
       await expect(
@@ -98,7 +108,11 @@ describe('ForgejoApiClient', () => {
   describe('getReleaseByTag', () => {
     it('should return release for existing tag', async () => {
       const pool = getMockPool(baseUrl);
-      pool.intercept({ path: apiPath('/repos/owner/repo/releases/tags/v1.0.0'), method: 'GET' })
+      pool
+        .intercept({
+          path: apiPath('/repos/owner/repo/releases/tags/v1.0.0'),
+          method: 'GET',
+        })
         .reply(200, mockResponses.release);
 
       const release = await client.getReleaseByTag('v1.0.0');
@@ -109,7 +123,11 @@ describe('ForgejoApiClient', () => {
 
     it('should return null for non-existent tag', async () => {
       const pool = getMockPool(baseUrl);
-      pool.intercept({ path: apiPath('/repos/owner/repo/releases/tags/v99.0.0'), method: 'GET' })
+      pool
+        .intercept({
+          path: apiPath('/repos/owner/repo/releases/tags/v99.0.0'),
+          method: 'GET',
+        })
         .reply(404, { message: 'Not Found' });
 
       const release = await client.getReleaseByTag('v99.0.0');
@@ -121,7 +139,11 @@ describe('ForgejoApiClient', () => {
   describe('getIssue', () => {
     it('should return an issue by number', async () => {
       const pool = getMockPool(baseUrl);
-      pool.intercept({ path: apiPath('/repos/owner/repo/issues/123'), method: 'GET' })
+      pool
+        .intercept({
+          path: apiPath('/repos/owner/repo/issues/123'),
+          method: 'GET',
+        })
         .reply(200, mockResponses.issue);
 
       const issue = await client.getIssue(123);
@@ -132,7 +154,11 @@ describe('ForgejoApiClient', () => {
 
     it('should throw on issue not found', async () => {
       const pool = getMockPool(baseUrl);
-      pool.intercept({ path: apiPath('/repos/owner/repo/issues/999'), method: 'GET' })
+      pool
+        .intercept({
+          path: apiPath('/repos/owner/repo/issues/999'),
+          method: 'GET',
+        })
         .reply(404, { message: 'Not Found' });
 
       await expect(client.getIssue(999)).rejects.toThrow();
@@ -142,10 +168,12 @@ describe('ForgejoApiClient', () => {
   describe('searchIssues', () => {
     it('should search issues with default parameters', async () => {
       const pool = getMockPool(baseUrl);
-      pool.intercept({
-        path: (path) => path.startsWith(apiPath('/repos/owner/repo/issues')),
-        method: 'GET',
-      }).reply(200, [mockResponses.issue]);
+      pool
+        .intercept({
+          path: (path) => path.startsWith(apiPath('/repos/owner/repo/issues')),
+          method: 'GET',
+        })
+        .reply(200, [mockResponses.issue]);
 
       const issues = await client.searchIssues();
 
@@ -154,10 +182,13 @@ describe('ForgejoApiClient', () => {
 
     it('should search issues with custom state', async () => {
       const pool = getMockPool(baseUrl);
-      pool.intercept({
-        path: (path) => path.startsWith(apiPath('/repos/owner/repo/issues')) && path.includes('state=open'),
-        method: 'GET',
-      }).reply(200, [mockResponses.issue]);
+      pool
+        .intercept({
+          path: (path) =>
+            path.startsWith(apiPath('/repos/owner/repo/issues')) && path.includes('state=open'),
+          method: 'GET',
+        })
+        .reply(200, [mockResponses.issue]);
 
       const issues = await client.searchIssues('open');
 
@@ -166,24 +197,32 @@ describe('ForgejoApiClient', () => {
 
     it('should search issues with query', async () => {
       const pool = getMockPool(baseUrl);
-      pool.intercept({
-        path: (path) => path.startsWith(apiPath('/repos/owner/repo/issues')),
-        method: 'GET',
-      }).reply(200, [mockResponses.issue]);
+      pool
+        .intercept({
+          path: (path) => path.startsWith(apiPath('/repos/owner/repo/issues')),
+          method: 'GET',
+        })
+        .reply(200, [mockResponses.issue]);
 
-      const issues = await client.searchIssues('open', { query: 'test search' });
+      const issues = await client.searchIssues('open', {
+        query: 'test search',
+      });
 
       expect(issues).toHaveLength(1);
     });
 
     it('should search issues with labels', async () => {
       const pool = getMockPool(baseUrl);
-      pool.intercept({
-        path: (path) => path.startsWith(apiPath('/repos/owner/repo/issues')),
-        method: 'GET',
-      }).reply(200, [mockResponses.issue]);
+      pool
+        .intercept({
+          path: (path) => path.startsWith(apiPath('/repos/owner/repo/issues')),
+          method: 'GET',
+        })
+        .reply(200, [mockResponses.issue]);
 
-      const issues = await client.searchIssues('all', { labels: ['bug', 'enhancement'] });
+      const issues = await client.searchIssues('all', {
+        labels: ['bug', 'enhancement'],
+      });
 
       expect(issues).toHaveLength(1);
     });
@@ -192,13 +231,15 @@ describe('ForgejoApiClient', () => {
   describe('findIssueByTitle', () => {
     it('should find issue with exact title match', async () => {
       const pool = getMockPool(baseUrl);
-      pool.intercept({
-        path: (path) => path.startsWith(apiPath('/repos/owner/repo/issues')),
-        method: 'GET',
-      }).reply(200, [
-        { ...mockResponses.issue, title: 'Other Issue' },
-        { ...mockResponses.issue, number: 456, title: 'Exact Match' },
-      ]);
+      pool
+        .intercept({
+          path: (path) => path.startsWith(apiPath('/repos/owner/repo/issues')),
+          method: 'GET',
+        })
+        .reply(200, [
+          { ...mockResponses.issue, title: 'Other Issue' },
+          { ...mockResponses.issue, number: 456, title: 'Exact Match' },
+        ]);
 
       const issue = await client.findIssueByTitle('Exact Match');
 
@@ -208,10 +249,12 @@ describe('ForgejoApiClient', () => {
 
     it('should return null when no exact match found', async () => {
       const pool = getMockPool(baseUrl);
-      pool.intercept({
-        path: (path) => path.startsWith(apiPath('/repos/owner/repo/issues')),
-        method: 'GET',
-      }).reply(200, [{ ...mockResponses.issue, title: 'Different Title' }]);
+      pool
+        .intercept({
+          path: (path) => path.startsWith(apiPath('/repos/owner/repo/issues')),
+          method: 'GET',
+        })
+        .reply(200, [{ ...mockResponses.issue, title: 'Different Title' }]);
 
       const issue = await client.findIssueByTitle('Non-existent Title');
 
@@ -229,7 +272,11 @@ describe('ForgejoApiClient', () => {
       };
 
       const pool = getMockPool(baseUrl);
-      pool.intercept({ path: apiPath('/repos/owner/repo/issues'), method: 'POST' })
+      pool
+        .intercept({
+          path: apiPath('/repos/owner/repo/issues'),
+          method: 'POST',
+        })
         .reply(201, { ...mockResponses.issue, ...issueOptions });
 
       const issue = await client.createIssue(issueOptions);
@@ -241,7 +288,11 @@ describe('ForgejoApiClient', () => {
   describe('updateIssue', () => {
     it('should update an issue', async () => {
       const pool = getMockPool(baseUrl);
-      pool.intercept({ path: apiPath('/repos/owner/repo/issues/123'), method: 'PATCH' })
+      pool
+        .intercept({
+          path: apiPath('/repos/owner/repo/issues/123'),
+          method: 'PATCH',
+        })
         .reply(200, { ...mockResponses.issue, title: 'Updated Title' });
 
       const issue = await client.updateIssue(123, { title: 'Updated Title' });
@@ -253,7 +304,11 @@ describe('ForgejoApiClient', () => {
   describe('closeIssue', () => {
     it('should close an issue', async () => {
       const pool = getMockPool(baseUrl);
-      pool.intercept({ path: apiPath('/repos/owner/repo/issues/123'), method: 'PATCH' })
+      pool
+        .intercept({
+          path: apiPath('/repos/owner/repo/issues/123'),
+          method: 'PATCH',
+        })
         .reply(200, { ...mockResponses.issue, state: 'closed' });
 
       const issue = await client.closeIssue(123);
@@ -265,7 +320,11 @@ describe('ForgejoApiClient', () => {
   describe('getIssueComments', () => {
     it('should return issue comments', async () => {
       const pool = getMockPool(baseUrl);
-      pool.intercept({ path: apiPath('/repos/owner/repo/issues/123/comments'), method: 'GET' })
+      pool
+        .intercept({
+          path: apiPath('/repos/owner/repo/issues/123/comments'),
+          method: 'GET',
+        })
         .reply(200, [mockResponses.comment]);
 
       const comments = await client.getIssueComments(123);
@@ -278,7 +337,11 @@ describe('ForgejoApiClient', () => {
   describe('createIssueComment', () => {
     it('should create a comment on an issue', async () => {
       const pool = getMockPool(baseUrl);
-      pool.intercept({ path: apiPath('/repos/owner/repo/issues/123/comments'), method: 'POST' })
+      pool
+        .intercept({
+          path: apiPath('/repos/owner/repo/issues/123/comments'),
+          method: 'POST',
+        })
         .reply(201, { ...mockResponses.comment, body: 'New comment' });
 
       const comment = await client.createIssueComment(123, 'New comment');
@@ -290,7 +353,11 @@ describe('ForgejoApiClient', () => {
   describe('addLabelsToIssue', () => {
     it('should add labels to an issue', async () => {
       const pool = getMockPool(baseUrl);
-      pool.intercept({ path: apiPath('/repos/owner/repo/issues/123/labels'), method: 'POST' })
+      pool
+        .intercept({
+          path: apiPath('/repos/owner/repo/issues/123/labels'),
+          method: 'POST',
+        })
         .reply(200, mockResponses.issue);
 
       const issue = await client.addLabelsToIssue(123, ['bug', 'urgent']);

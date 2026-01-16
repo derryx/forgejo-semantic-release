@@ -1,9 +1,9 @@
 import AggregateError from 'aggregate-error';
 import createDebug from 'debug';
-import type { ForgejoPluginConfig, PluginContext } from './types.js';
-import { resolveConfig, validateConfig } from './resolve-config.js';
 import { ForgejoApiClient } from './api-client.js';
 import { getError } from './get-error.js';
+import { resolveConfig, validateConfig } from './resolve-config.js';
+import type { ForgejoPluginConfig, PluginContext } from './types.js';
 
 const debug = createDebug('forgejo-semantic-release:verify');
 
@@ -52,7 +52,9 @@ export async function verifyConditions(
     const user = await client.getCurrentUser();
     logger.log(`Authenticated as ${user.login}`);
   } catch (error) {
-    const err = error as { response?: { statusCode: number; statusMessage?: string } };
+    const err = error as {
+      response?: { statusCode: number; statusMessage?: string };
+    };
     errors.push(
       getError('EINVALIDFORGEJOTOKEN', {
         statusCode: err.response?.statusCode || 0,
@@ -68,21 +70,16 @@ export async function verifyConditions(
 
   // Verify repository access
   try {
-    const repo = await client.getRepository(
-      config.repositoryOwner,
-      config.repositoryName
-    );
+    const repo = await client.getRepository(config.repositoryOwner, config.repositoryName);
 
-    if (!repo.permissions?.push) {
+    if (repo.permissions?.push) {
+      logger.log(`Repository ${config.repositoryOwner}/${config.repositoryName} verified`);
+    } else {
       errors.push(
         getError('ENOPUSHPERMISSION', {
           owner: config.repositoryOwner,
           repo: config.repositoryName,
         })
-      );
-    } else {
-      logger.log(
-        `Repository ${config.repositoryOwner}/${config.repositoryName} verified`
       );
     }
   } catch (error) {

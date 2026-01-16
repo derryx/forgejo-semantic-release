@@ -1,8 +1,8 @@
-import { globby } from 'globby';
 import { stat } from 'node:fs/promises';
 import { basename, resolve, isAbsolute } from 'node:path';
-import { lookup } from 'mime-types';
 import createDebug from 'debug';
+import { globby } from 'globby';
+import { lookup } from 'mime-types';
 import type { AssetConfig, ResolvedAsset, Logger } from './types.js';
 
 const debug = createDebug('forgejo-semantic-release:assets');

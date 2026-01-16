@@ -17,9 +17,7 @@ export function parseGitUrl(remoteUrl: string): RepositoryInfo | null {
   const cleanUrl = remoteUrl.replace(/\.git\/?$/, '');
 
   // Try HTTPS format: https://host/owner/repo
-  const httpsMatch = cleanUrl.match(
-    /^https?:\/\/([^/]+)\/([^/]+)\/([^/]+)$/
-  );
+  const httpsMatch = /^https?:\/\/([^/]+)\/([^/]+)\/([^/]+)$/.exec(cleanUrl);
   if (httpsMatch) {
     const [, host, owner, repo] = httpsMatch;
     return {
@@ -30,7 +28,7 @@ export function parseGitUrl(remoteUrl: string): RepositoryInfo | null {
   }
 
   // Try SSH format: git@host:owner/repo
-  const sshMatch = cleanUrl.match(/^git@([^:]+):([^/]+)\/([^/]+)$/);
+  const sshMatch = /^git@([^:]+):([^/]+)\/([^/]+)$/.exec(cleanUrl);
   if (sshMatch) {
     const [, host, owner, repo] = sshMatch;
     return {
@@ -41,9 +39,7 @@ export function parseGitUrl(remoteUrl: string): RepositoryInfo | null {
   }
 
   // Try SSH with protocol: ssh://git@host/owner/repo
-  const sshProtocolMatch = cleanUrl.match(
-    /^ssh:\/\/git@([^/]+)\/([^/]+)\/([^/]+)$/
-  );
+  const sshProtocolMatch = /^ssh:\/\/git@([^/]+)\/([^/]+)\/([^/]+)$/.exec(cleanUrl);
   if (sshProtocolMatch) {
     const [, host, owner, repo] = sshProtocolMatch;
     return {
@@ -54,9 +50,7 @@ export function parseGitUrl(remoteUrl: string): RepositoryInfo | null {
   }
 
   // Try SSH with port: ssh://git@host:port/owner/repo
-  const sshPortMatch = cleanUrl.match(
-    /^ssh:\/\/git@([^:/]+)(?::\d+)?\/([^/]+)\/([^/]+)$/
-  );
+  const sshPortMatch = /^ssh:\/\/git@([^:/]+)(?::\d+)?\/([^/]+)\/([^/]+)$/.exec(cleanUrl);
   if (sshPortMatch) {
     const [, host, owner, repo] = sshPortMatch;
     return {

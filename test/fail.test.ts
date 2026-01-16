@@ -1,8 +1,8 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { ForgejoApiClient } from '../src/api-client.js';
 import { fail } from '../src/fail.js';
 import { createMockContext, createMockConfig, mockResponses } from './helpers/mock-context.js';
 import { setupMockAgent, cleanupMock, getMockPool, apiPath } from './helpers/mock-forgejo.js';
-import { ForgejoApiClient } from '../src/api-client.js';
 
 describe('fail', () => {
   const baseUrl = 'https://forgejo.example.com';
@@ -19,13 +19,16 @@ describe('fail', () => {
     const pool = getMockPool(baseUrl);
 
     // Search for existing failure issue
-    pool.intercept({
-      path: (path) => path.startsWith(apiPath('/repos/owner/repo/issues')),
-      method: 'GET',
-    }).reply(200, []);
+    pool
+      .intercept({
+        path: (path) => path.startsWith(apiPath('/repos/owner/repo/issues')),
+        method: 'GET',
+      })
+      .reply(200, []);
 
     // Create new issue
-    pool.intercept({ path: apiPath('/repos/owner/repo/issues'), method: 'POST' })
+    pool
+      .intercept({ path: apiPath('/repos/owner/repo/issues'), method: 'POST' })
       .reply(201, mockResponses.failureIssue);
 
     const config = createMockConfig();
@@ -51,13 +54,19 @@ describe('fail', () => {
     };
 
     // Search returns existing issue
-    pool.intercept({
-      path: (path) => path.startsWith(apiPath('/repos/owner/repo/issues')),
-      method: 'GET',
-    }).reply(200, [existingIssue]);
+    pool
+      .intercept({
+        path: (path) => path.startsWith(apiPath('/repos/owner/repo/issues')),
+        method: 'GET',
+      })
+      .reply(200, [existingIssue]);
 
     // Add comment to existing issue
-    pool.intercept({ path: apiPath('/repos/owner/repo/issues/456/comments'), method: 'POST' })
+    pool
+      .intercept({
+        path: apiPath('/repos/owner/repo/issues/456/comments'),
+        method: 'POST',
+      })
       .reply(201, mockResponses.comment);
 
     const config = createMockConfig();
@@ -75,12 +84,15 @@ describe('fail', () => {
   it('should include labels and assignees in new issue', async () => {
     const pool = getMockPool(baseUrl);
 
-    pool.intercept({
-      path: (path) => path.startsWith(apiPath('/repos/owner/repo/issues')),
-      method: 'GET',
-    }).reply(200, []);
+    pool
+      .intercept({
+        path: (path) => path.startsWith(apiPath('/repos/owner/repo/issues')),
+        method: 'GET',
+      })
+      .reply(200, []);
 
-    pool.intercept({ path: apiPath('/repos/owner/repo/issues'), method: 'POST' })
+    pool
+      .intercept({ path: apiPath('/repos/owner/repo/issues'), method: 'POST' })
       .reply(201, mockResponses.failureIssue);
 
     const config = createMockConfig({
@@ -119,12 +131,15 @@ describe('fail', () => {
   it('should warn if issue creation fails', async () => {
     const pool = getMockPool(baseUrl);
 
-    pool.intercept({
-      path: (path) => path.startsWith(apiPath('/repos/owner/repo/issues')),
-      method: 'GET',
-    }).reply(200, []);
+    pool
+      .intercept({
+        path: (path) => path.startsWith(apiPath('/repos/owner/repo/issues')),
+        method: 'GET',
+      })
+      .reply(200, []);
 
-    pool.intercept({ path: apiPath('/repos/owner/repo/issues'), method: 'POST' })
+    pool
+      .intercept({ path: apiPath('/repos/owner/repo/issues'), method: 'POST' })
       .reply(500, { message: 'Internal Server Error' });
 
     const config = createMockConfig();
@@ -145,12 +160,15 @@ describe('fail', () => {
   it('should include error details in issue body', async () => {
     const pool = getMockPool(baseUrl);
 
-    pool.intercept({
-      path: (path) => path.startsWith(apiPath('/repos/owner/repo/issues')),
-      method: 'GET',
-    }).reply(200, []);
+    pool
+      .intercept({
+        path: (path) => path.startsWith(apiPath('/repos/owner/repo/issues')),
+        method: 'GET',
+      })
+      .reply(200, []);
 
-    pool.intercept({ path: apiPath('/repos/owner/repo/issues'), method: 'POST' })
+    pool
+      .intercept({ path: apiPath('/repos/owner/repo/issues'), method: 'POST' })
       .reply(201, mockResponses.failureIssue);
 
     const config = createMockConfig();
@@ -171,12 +189,15 @@ describe('fail', () => {
   it('should use custom fail title if configured', async () => {
     const pool = getMockPool(baseUrl);
 
-    pool.intercept({
-      path: (path) => path.startsWith(apiPath('/repos/owner/repo/issues')),
-      method: 'GET',
-    }).reply(200, []);
+    pool
+      .intercept({
+        path: (path) => path.startsWith(apiPath('/repos/owner/repo/issues')),
+        method: 'GET',
+      })
+      .reply(200, []);
 
-    pool.intercept({ path: apiPath('/repos/owner/repo/issues'), method: 'POST' })
+    pool
+      .intercept({ path: apiPath('/repos/owner/repo/issues'), method: 'POST' })
       .reply(201, mockResponses.failureIssue);
 
     const config = createMockConfig({
@@ -198,12 +219,15 @@ describe('fail', () => {
   it('should handle empty errors array', async () => {
     const pool = getMockPool(baseUrl);
 
-    pool.intercept({
-      path: (path) => path.startsWith(apiPath('/repos/owner/repo/issues')),
-      method: 'GET',
-    }).reply(200, []);
+    pool
+      .intercept({
+        path: (path) => path.startsWith(apiPath('/repos/owner/repo/issues')),
+        method: 'GET',
+      })
+      .reply(200, []);
 
-    pool.intercept({ path: apiPath('/repos/owner/repo/issues'), method: 'POST' })
+    pool
+      .intercept({ path: apiPath('/repos/owner/repo/issues'), method: 'POST' })
       .reply(201, mockResponses.failureIssue);
 
     const config = createMockConfig();

@@ -1,11 +1,7 @@
 import { execSync } from 'node:child_process';
-import type {
-  ForgejoPluginConfig,
-  ResolvedConfig,
-  AssetConfig,
-} from './types.js';
-import { parseGitUrl } from './utils/parse-git-url.js';
 import { getError } from './get-error.js';
+import type { ForgejoPluginConfig, ResolvedConfig, AssetConfig } from './types.js';
+import { parseGitUrl } from './utils/parse-git-url.js';
 
 const DEFAULT_SUCCESS_COMMENT = `
 :tada: This \${issue.pull_request ? 'PR is included' : 'issue has been resolved'} in version \${nextRelease.version} :tada:
@@ -49,9 +45,7 @@ function getGitRemoteUrl(cwd: string): string | null {
 /**
  * Normalize assets configuration to array of AssetConfig
  */
-function normalizeAssets(
-  assets: ForgejoPluginConfig['assets']
-): AssetConfig[] {
+function normalizeAssets(assets: ForgejoPluginConfig['assets']): AssetConfig[] {
   if (!assets) {
     return [];
   }
@@ -81,39 +75,24 @@ export function resolveConfig(
   cwd: string
 ): ResolvedConfig {
   // Resolve token from config or environment
-  const forgejoToken =
-    pluginConfig.forgejoToken ||
-    env.FORGEJO_TOKEN ||
-    env.GITEA_TOKEN ||
-    '';
+  const forgejoToken = pluginConfig.forgejoToken || env.FORGEJO_TOKEN || env.GITEA_TOKEN || '';
 
   // Resolve URL from config, environment, or git remote
-  let forgejoUrl =
-    pluginConfig.forgejoUrl || env.FORGEJO_URL || env.GITEA_URL || '';
+  let forgejoUrl = pluginConfig.forgejoUrl || env.FORGEJO_URL || env.GITEA_URL || '';
 
   let repositoryOwner = '';
   let repositoryName = '';
 
-  // If no URL provided, try to parse from git remote
-  if (!forgejoUrl) {
-    const remoteUrl = getGitRemoteUrl(cwd);
-    if (remoteUrl) {
-      const parsed = parseGitUrl(remoteUrl);
-      if (parsed) {
+  // Parse git remote for owner/repo (and URL if not provided)
+  const remoteUrl = getGitRemoteUrl(cwd);
+  if (remoteUrl) {
+    const parsed = parseGitUrl(remoteUrl);
+    if (parsed) {
+      if (!forgejoUrl) {
         forgejoUrl = parsed.url;
-        repositoryOwner = parsed.owner;
-        repositoryName = parsed.repo;
       }
-    }
-  } else {
-    // URL provided, still need owner/repo from git remote
-    const remoteUrl = getGitRemoteUrl(cwd);
-    if (remoteUrl) {
-      const parsed = parseGitUrl(remoteUrl);
-      if (parsed) {
-        repositoryOwner = parsed.owner;
-        repositoryName = parsed.repo;
-      }
+      repositoryOwner = parsed.owner;
+      repositoryName = parsed.repo;
     }
   }
 
@@ -139,9 +118,7 @@ export function resolveConfig(
     labels: pluginConfig.labels || ['semantic-release'],
     assignees: pluginConfig.assignees || [],
     releasedLabels:
-      pluginConfig.releasedLabels === false
-        ? false
-        : pluginConfig.releasedLabels || false,
+      pluginConfig.releasedLabels === false ? false : pluginConfig.releasedLabels || false,
     proxy: pluginConfig.proxy,
   };
 }

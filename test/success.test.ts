@@ -1,8 +1,8 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { ForgejoApiClient } from '../src/api-client.js';
 import { success } from '../src/success.js';
 import { createMockContext, createMockConfig, mockResponses } from './helpers/mock-context.js';
 import { setupMockAgent, cleanupMock, getMockPool, apiPath } from './helpers/mock-forgejo.js';
-import { ForgejoApiClient } from '../src/api-client.js';
 
 describe('success', () => {
   const baseUrl = 'https://forgejo.example.com';
@@ -18,20 +18,34 @@ describe('success', () => {
   it('should comment on issues referenced in commits', async () => {
     const pool = getMockPool(baseUrl);
 
-    pool.intercept({ path: apiPath('/repos/owner/repo/issues/123'), method: 'GET' })
+    pool
+      .intercept({
+        path: apiPath('/repos/owner/repo/issues/123'),
+        method: 'GET',
+      })
       .reply(200, mockResponses.issue);
 
-    pool.intercept({ path: apiPath('/repos/owner/repo/issues/123/comments'), method: 'GET' })
+    pool
+      .intercept({
+        path: apiPath('/repos/owner/repo/issues/123/comments'),
+        method: 'GET',
+      })
       .reply(200, []);
 
-    pool.intercept({ path: apiPath('/repos/owner/repo/issues/123/comments'), method: 'POST' })
+    pool
+      .intercept({
+        path: apiPath('/repos/owner/repo/issues/123/comments'),
+        method: 'POST',
+      })
       .reply(201, mockResponses.comment);
 
     // No existing failure issue to close
-    pool.intercept({
-      path: (path) => path.startsWith(apiPath('/repos/owner/repo/issues')),
-      method: 'GET',
-    }).reply(200, []);
+    pool
+      .intercept({
+        path: (path) => path.startsWith(apiPath('/repos/owner/repo/issues')),
+        method: 'GET',
+      })
+      .reply(200, []);
 
     const config = createMockConfig();
     const context = createMockContext({
@@ -43,7 +57,12 @@ describe('success', () => {
           message: 'feat: add feature\n\nfixes #123',
         },
       ],
-      releases: [{ name: 'Forgejo release', url: 'https://forgejo.example.com/releases/v1.0.0' }],
+      releases: [
+        {
+          name: 'Forgejo release',
+          url: 'https://forgejo.example.com/releases/v1.0.0',
+        },
+      ],
     });
 
     await success({}, context);
@@ -69,10 +88,12 @@ describe('success', () => {
     const pool = getMockPool(baseUrl);
 
     // Search for failure issues to close
-    pool.intercept({
-      path: (path) => path.startsWith(apiPath('/repos/owner/repo/issues')),
-      method: 'GET',
-    }).reply(200, []);
+    pool
+      .intercept({
+        path: (path) => path.startsWith(apiPath('/repos/owner/repo/issues')),
+        method: 'GET',
+      })
+      .reply(200, []);
 
     const config = createMockConfig();
     const context = createMockContext({
@@ -94,10 +115,18 @@ describe('success', () => {
   it('should skip if comment already exists', async () => {
     const pool = getMockPool(baseUrl);
 
-    pool.intercept({ path: apiPath('/repos/owner/repo/issues/123'), method: 'GET' })
+    pool
+      .intercept({
+        path: apiPath('/repos/owner/repo/issues/123'),
+        method: 'GET',
+      })
       .reply(200, mockResponses.issue);
 
-    pool.intercept({ path: apiPath('/repos/owner/repo/issues/123/comments'), method: 'GET' })
+    pool
+      .intercept({
+        path: apiPath('/repos/owner/repo/issues/123/comments'),
+        method: 'GET',
+      })
       .reply(200, [
         {
           ...mockResponses.comment,
@@ -105,10 +134,12 @@ describe('success', () => {
         },
       ]);
 
-    pool.intercept({
-      path: (path) => path.startsWith(apiPath('/repos/owner/repo/issues')),
-      method: 'GET',
-    }).reply(200, []);
+    pool
+      .intercept({
+        path: (path) => path.startsWith(apiPath('/repos/owner/repo/issues')),
+        method: 'GET',
+      })
+      .reply(200, []);
 
     const config = createMockConfig();
     const context = createMockContext({
@@ -137,12 +168,18 @@ describe('success', () => {
       title: 'Automated release failed',
     };
 
-    pool.intercept({
-      path: (path) => path.startsWith(apiPath('/repos/owner/repo/issues')),
-      method: 'GET',
-    }).reply(200, [failureIssue]);
+    pool
+      .intercept({
+        path: (path) => path.startsWith(apiPath('/repos/owner/repo/issues')),
+        method: 'GET',
+      })
+      .reply(200, [failureIssue]);
 
-    pool.intercept({ path: apiPath('/repos/owner/repo/issues/456'), method: 'PATCH' })
+    pool
+      .intercept({
+        path: apiPath('/repos/owner/repo/issues/456'),
+        method: 'PATCH',
+      })
       .reply(200, { ...failureIssue, state: 'closed' });
 
     const config = createMockConfig();
@@ -161,30 +198,50 @@ describe('success', () => {
     const pool = getMockPool(baseUrl);
 
     // Mock for issue #1 (fixes pattern)
-    pool.intercept({ path: apiPath('/repos/owner/repo/issues/1'), method: 'GET' })
+    pool
+      .intercept({ path: apiPath('/repos/owner/repo/issues/1'), method: 'GET' })
       .reply(200, { ...mockResponses.issue, number: 1 });
 
-    pool.intercept({ path: apiPath('/repos/owner/repo/issues/1/comments'), method: 'GET' })
+    pool
+      .intercept({
+        path: apiPath('/repos/owner/repo/issues/1/comments'),
+        method: 'GET',
+      })
       .reply(200, []);
 
-    pool.intercept({ path: apiPath('/repos/owner/repo/issues/1/comments'), method: 'POST' })
+    pool
+      .intercept({
+        path: apiPath('/repos/owner/repo/issues/1/comments'),
+        method: 'POST',
+      })
       .reply(201, mockResponses.comment);
 
     // Mock for issue #2 (closes pattern)
-    pool.intercept({ path: apiPath('/repos/owner/repo/issues/2'), method: 'GET' })
+    pool
+      .intercept({ path: apiPath('/repos/owner/repo/issues/2'), method: 'GET' })
       .reply(200, { ...mockResponses.issue, number: 2 });
 
-    pool.intercept({ path: apiPath('/repos/owner/repo/issues/2/comments'), method: 'GET' })
+    pool
+      .intercept({
+        path: apiPath('/repos/owner/repo/issues/2/comments'),
+        method: 'GET',
+      })
       .reply(200, []);
 
-    pool.intercept({ path: apiPath('/repos/owner/repo/issues/2/comments'), method: 'POST' })
+    pool
+      .intercept({
+        path: apiPath('/repos/owner/repo/issues/2/comments'),
+        method: 'POST',
+      })
       .reply(201, mockResponses.comment);
 
     // Search for failure issues
-    pool.intercept({
-      path: (path) => path.startsWith(apiPath('/repos/owner/repo/issues')),
-      method: 'GET',
-    }).reply(200, []);
+    pool
+      .intercept({
+        path: (path) => path.startsWith(apiPath('/repos/owner/repo/issues')),
+        method: 'GET',
+      })
+      .reply(200, []);
 
     const config = createMockConfig();
     const context = createMockContext({
@@ -200,7 +257,12 @@ describe('success', () => {
           message: 'fix: bug\n\ncloses #2',
         },
       ],
-      releases: [{ name: 'Forgejo release', url: 'https://forgejo.example.com/releases/v1.0.0' }],
+      releases: [
+        {
+          name: 'Forgejo release',
+          url: 'https://forgejo.example.com/releases/v1.0.0',
+        },
+      ],
     });
 
     await success({}, context);
@@ -211,13 +273,19 @@ describe('success', () => {
   it('should continue if issue fetch fails', async () => {
     const pool = getMockPool(baseUrl);
 
-    pool.intercept({ path: apiPath('/repos/owner/repo/issues/999'), method: 'GET' })
+    pool
+      .intercept({
+        path: apiPath('/repos/owner/repo/issues/999'),
+        method: 'GET',
+      })
       .reply(404, { message: 'Not Found' });
 
-    pool.intercept({
-      path: (path) => path.startsWith(apiPath('/repos/owner/repo/issues')),
-      method: 'GET',
-    }).reply(200, []);
+    pool
+      .intercept({
+        path: (path) => path.startsWith(apiPath('/repos/owner/repo/issues')),
+        method: 'GET',
+      })
+      .reply(200, []);
 
     const config = createMockConfig();
     const context = createMockContext({
@@ -231,29 +299,51 @@ describe('success', () => {
       ],
     });
 
-    // Should not throw
     await success({}, context);
+
+    // Should not throw and should not post any comments (issue fetch failed silently)
+    expect(context.logger.log).not.toHaveBeenCalledWith(
+      expect.stringContaining('Commented on issue')
+    );
   });
 
   it('should add labels if releasedLabels is configured', async () => {
     const pool = getMockPool(baseUrl);
 
-    pool.intercept({ path: apiPath('/repos/owner/repo/issues/123'), method: 'GET' })
+    pool
+      .intercept({
+        path: apiPath('/repos/owner/repo/issues/123'),
+        method: 'GET',
+      })
       .reply(200, mockResponses.issue);
 
-    pool.intercept({ path: apiPath('/repos/owner/repo/issues/123/comments'), method: 'GET' })
+    pool
+      .intercept({
+        path: apiPath('/repos/owner/repo/issues/123/comments'),
+        method: 'GET',
+      })
       .reply(200, []);
 
-    pool.intercept({ path: apiPath('/repos/owner/repo/issues/123/comments'), method: 'POST' })
+    pool
+      .intercept({
+        path: apiPath('/repos/owner/repo/issues/123/comments'),
+        method: 'POST',
+      })
       .reply(201, mockResponses.comment);
 
-    pool.intercept({ path: apiPath('/repos/owner/repo/issues/123/labels'), method: 'POST' })
+    pool
+      .intercept({
+        path: apiPath('/repos/owner/repo/issues/123/labels'),
+        method: 'POST',
+      })
       .reply(200, mockResponses.issue);
 
-    pool.intercept({
-      path: (path) => path.startsWith(apiPath('/repos/owner/repo/issues')),
-      method: 'GET',
-    }).reply(200, []);
+    pool
+      .intercept({
+        path: (path) => path.startsWith(apiPath('/repos/owner/repo/issues')),
+        method: 'GET',
+      })
+      .reply(200, []);
 
     const config = createMockConfig({
       releasedLabels: ['released', 'v1.0.0'],
@@ -267,9 +357,17 @@ describe('success', () => {
           message: 'feat: feature\n\nfixes #123',
         },
       ],
-      releases: [{ name: 'Forgejo release', url: 'https://forgejo.example.com/releases/v1.0.0' }],
+      releases: [
+        {
+          name: 'Forgejo release',
+          url: 'https://forgejo.example.com/releases/v1.0.0',
+        },
+      ],
     });
 
     await success({}, context);
+
+    // Verify comment was posted (labels are added after commenting)
+    expect(context.logger.log).toHaveBeenCalledWith('Commented on issue #123');
   });
 });

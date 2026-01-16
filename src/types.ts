@@ -1,3 +1,5 @@
+import type { ForgejoApiClient } from './api-client.js';
+
 /**
  * Commit object from semantic-release
  */
@@ -313,7 +315,7 @@ export interface PluginContext {
   /** Resolved Forgejo configuration (set by verifyConditions) */
   forgejoConfig?: ResolvedConfig;
   /** Forgejo API client (set by verifyConditions) */
-  forgejoClient?: import('./api-client.js').ForgejoApiClient;
+  forgejoClient?: ForgejoApiClient;
   /** Published Forgejo release (set by publish) */
   forgejoRelease?: ForgejoRelease;
 }

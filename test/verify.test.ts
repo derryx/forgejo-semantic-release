@@ -21,9 +21,9 @@ describe('verifyConditions', () => {
 
   it('should verify valid token and repository access', async () => {
     const pool = getMockPool(baseUrl);
-    pool.intercept({ path: apiPath('/user'), method: 'GET' })
-      .reply(200, mockResponses.user);
-    pool.intercept({ path: apiPath('/repos/owner/repo'), method: 'GET' })
+    pool.intercept({ path: apiPath('/user'), method: 'GET' }).reply(200, mockResponses.user);
+    pool
+      .intercept({ path: apiPath('/repos/owner/repo'), method: 'GET' })
       .reply(200, mockResponses.repository);
 
     const context = createMockContext();
@@ -76,7 +76,8 @@ describe('verifyConditions', () => {
 
   it('should throw EINVALIDFORGEJOTOKEN when authentication fails', async () => {
     const pool = getMockPool(baseUrl);
-    pool.intercept({ path: apiPath('/user'), method: 'GET' })
+    pool
+      .intercept({ path: apiPath('/user'), method: 'GET' })
       .reply(401, { message: 'Unauthorized' });
 
     const context = createMockContext();
@@ -100,9 +101,9 @@ describe('verifyConditions', () => {
 
   it('should throw ENOREPO when repository is not found', async () => {
     const pool = getMockPool(baseUrl);
-    pool.intercept({ path: apiPath('/user'), method: 'GET' })
-      .reply(200, mockResponses.user);
-    pool.intercept({ path: apiPath('/repos/owner/repo'), method: 'GET' })
+    pool.intercept({ path: apiPath('/user'), method: 'GET' }).reply(200, mockResponses.user);
+    pool
+      .intercept({ path: apiPath('/repos/owner/repo'), method: 'GET' })
       .reply(404, { message: 'Not Found' });
 
     const context = createMockContext();
@@ -135,9 +136,9 @@ describe('verifyConditions', () => {
     };
 
     const pool = getMockPool(baseUrl);
-    pool.intercept({ path: apiPath('/user'), method: 'GET' })
-      .reply(200, mockResponses.user);
-    pool.intercept({ path: apiPath('/repos/owner/repo'), method: 'GET' })
+    pool.intercept({ path: apiPath('/user'), method: 'GET' }).reply(200, mockResponses.user);
+    pool
+      .intercept({ path: apiPath('/repos/owner/repo'), method: 'GET' })
       .reply(200, repoWithoutPush);
 
     const context = createMockContext();
@@ -165,9 +166,9 @@ describe('verifyConditions', () => {
 
     try {
       const pool = getMockPool(baseUrl);
-      pool.intercept({ path: apiPath('/user'), method: 'GET' })
-        .reply(200, mockResponses.user);
-      pool.intercept({ path: apiPath('/repos/owner/repo'), method: 'GET' })
+      pool.intercept({ path: apiPath('/user'), method: 'GET' }).reply(200, mockResponses.user);
+      pool
+        .intercept({ path: apiPath('/repos/owner/repo'), method: 'GET' })
         .reply(200, mockResponses.repository);
 
       const context = createMockContext();
@@ -197,9 +198,9 @@ describe('verifyConditions', () => {
 
     try {
       const pool = getMockPool(baseUrl);
-      pool.intercept({ path: apiPath('/user'), method: 'GET' })
-        .reply(200, mockResponses.user);
-      pool.intercept({ path: apiPath('/repos/owner/repo'), method: 'GET' })
+      pool.intercept({ path: apiPath('/user'), method: 'GET' }).reply(200, mockResponses.user);
+      pool
+        .intercept({ path: apiPath('/repos/owner/repo'), method: 'GET' })
         .reply(200, mockResponses.repository);
 
       const context = createMockContext();
@@ -226,9 +227,9 @@ describe('verifyConditions', () => {
 
   it('should store config and client in context for other hooks', async () => {
     const pool = getMockPool(baseUrl);
-    pool.intercept({ path: apiPath('/user'), method: 'GET' })
-      .reply(200, mockResponses.user);
-    pool.intercept({ path: apiPath('/repos/owner/repo'), method: 'GET' })
+    pool.intercept({ path: apiPath('/user'), method: 'GET' }).reply(200, mockResponses.user);
+    pool
+      .intercept({ path: apiPath('/repos/owner/repo'), method: 'GET' })
       .reply(200, mockResponses.repository);
 
     const context = createMockContext();

@@ -1,14 +1,13 @@
 import createDebug from 'debug';
+import { ForgejoApiClient } from './api-client.js';
+import { resolveConfig } from './resolve-config.js';
 import type {
   ForgejoPluginConfig,
   PluginContext,
   TemplateContext,
   ForgejoIssue,
-  Logger,
 } from './types.js';
-import { ForgejoApiClient } from './api-client.js';
 import { compileTemplate, evaluateCondition } from './utils/template.js';
-import { resolveConfig } from './resolve-config.js';
 
 const debug = createDebug('forgejo-semantic-release:success');
 
@@ -36,8 +35,8 @@ function extractIssueNumbers(commits: Array<{ message: string }>): Set<number> {
       pattern.lastIndex = 0;
       let match;
       while ((match = pattern.exec(commit.message)) !== null) {
-        const issueNum = parseInt(match[1], 10);
-        if (!isNaN(issueNum)) {
+        const issueNum = Number.parseInt(match[1], 10);
+        if (!Number.isNaN(issueNum)) {
           issueNumbers.add(issueNum);
         }
       }
@@ -60,9 +59,7 @@ async function hasExistingReleaseComment(
     const comments = await client.getIssueComments(issueNumber);
     // Check if any comment mentions this version
     return comments.some(
-      (comment) =>
-        comment.body.includes(version) &&
-        comment.body.includes('semantic-release')
+      (comment) => comment.body.includes(version) && comment.body.includes('semantic-release')
     );
   } catch {
     return false;
@@ -85,6 +82,85 @@ async function closeFailureIssues(
     }
   } catch (error) {
     debug('Failed to close failure issue: %s', (error as Error).message);
+  }
+}
+
+interface ProcessIssueParams {
+  issueNumber: number;
+  client: ForgejoApiClient;
+  config: ReturnType<typeof resolveConfig>;
+  templateContext: TemplateContext;
+  version: string;
+  logger: PluginContext['logger'];
+}
+
+/**
+ * Process a single issue - post comment and add labels
+ * Returns true if a comment was posted
+ */
+async function processIssue(params: ProcessIssueParams): Promise<boolean> {
+  const { issueNumber, client, config, templateContext, version, logger } = params;
+
+  // Get issue details
+  let issue: ForgejoIssue;
+  try {
+    issue = await client.getIssue(issueNumber);
+  } catch (error) {
+    debug('Failed to get issue #%d: %s', issueNumber, (error as Error).message);
+    return false;
+  }
+
+  // Evaluate condition if set
+  if (config.successCommentCondition !== false) {
+    const shouldComment = evaluateCondition(config.successCommentCondition, {
+      ...templateContext,
+      issue,
+    });
+    if (!shouldComment) {
+      debug('Skipping issue #%d due to condition', issueNumber);
+      return false;
+    }
+  }
+
+  // Check for existing comment
+  const hasComment = await hasExistingReleaseComment(client, issueNumber, version);
+  if (hasComment) {
+    debug('Issue #%d already has a release comment', issueNumber);
+    return false;
+  }
+
+  // Generate and post comment
+  const commentBody = compileTemplate(config.successComment, {
+    ...templateContext,
+    issue,
+  });
+
+  await client.createIssueComment(issueNumber, commentBody);
+  logger.log(`Commented on issue #${issueNumber}`);
+
+  // Add released labels if configured
+  await addReleasedLabels(client, issueNumber, config.releasedLabels);
+
+  return true;
+}
+
+/**
+ * Add released labels to an issue if configured
+ */
+async function addReleasedLabels(
+  client: ForgejoApiClient,
+  issueNumber: number,
+  releasedLabels: string[] | false
+): Promise<void> {
+  if (releasedLabels === false || releasedLabels.length === 0) {
+    return;
+  }
+
+  try {
+    await client.addLabelsToIssue(issueNumber, releasedLabels);
+    debug('Added labels to issue #%d', issueNumber);
+  } catch (error) {
+    debug('Failed to add labels to issue #%d: %s', issueNumber, (error as Error).message);
   }
 }
 
@@ -117,7 +193,6 @@ export async function success(
   const issueNumbers = extractIssueNumbers(commits || []);
   if (issueNumbers.size === 0) {
     logger.log('No issue references found in commits');
-    // Still try to close failure issues
     await closeFailureIssues(client, config.failTitle, logger);
     return;
   }
@@ -141,59 +216,18 @@ export async function success(
   let commentedCount = 0;
   for (const issueNumber of issueNumbers) {
     try {
-      // Get issue details
-      let issue: ForgejoIssue;
-      try {
-        issue = await client.getIssue(issueNumber);
-      } catch (error) {
-        debug('Failed to get issue #%d: %s', issueNumber, (error as Error).message);
-        continue;
-      }
-
-      // Evaluate condition if set
-      if (config.successCommentCondition !== false) {
-        const shouldComment = evaluateCondition(
-          config.successCommentCondition as string,
-          { ...templateContext, issue }
-        );
-        if (!shouldComment) {
-          debug('Skipping issue #%d due to condition', issueNumber);
-          continue;
-        }
-      }
-
-      // Check for existing comment
-      const hasComment = await hasExistingReleaseComment(
-        client,
+      const commented = await processIssue({
         issueNumber,
-        nextRelease!.version
-      );
-      if (hasComment) {
-        debug('Issue #%d already has a release comment', issueNumber);
-        continue;
-      }
-
-      // Generate and post comment
-      const commentBody = compileTemplate(config.successComment as string, {
-        ...templateContext,
-        issue,
+        client,
+        config,
+        templateContext,
+        version: nextRelease!.version,
+        logger,
       });
-
-      await client.createIssueComment(issueNumber, commentBody);
-      logger.log(`Commented on issue #${issueNumber}`);
-      commentedCount++;
-
-      // Add released labels if configured
-      if (config.releasedLabels !== false && config.releasedLabels.length > 0) {
-        try {
-          await client.addLabelsToIssue(issueNumber, config.releasedLabels);
-          debug('Added labels to issue #%d', issueNumber);
-        } catch (error) {
-          debug('Failed to add labels to issue #%d: %s', issueNumber, (error as Error).message);
-        }
+      if (commented) {
+        commentedCount++;
       }
     } catch (error) {
-      // Log warning but continue with other issues
       logger.warn(`Failed to process issue #${issueNumber}: ${(error as Error).message}`);
       debug('Issue processing failed: #%d - %s', issueNumber, (error as Error).message);
     }
@@ -203,6 +237,5 @@ export async function success(
     logger.log(`Posted ${commentedCount} success comment(s)`);
   }
 
-  // Close any existing failure issues
   await closeFailureIssues(client, config.failTitle, logger);
 }

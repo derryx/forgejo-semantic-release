@@ -1,12 +1,8 @@
 import createDebug from 'debug';
-import type {
-  ForgejoPluginConfig,
-  PluginContext,
-  TemplateContext,
-} from './types.js';
 import { ForgejoApiClient } from './api-client.js';
-import { compileTemplate } from './utils/template.js';
 import { resolveConfig } from './resolve-config.js';
+import type { ForgejoPluginConfig, PluginContext, TemplateContext } from './types.js';
+import { compileTemplate } from './utils/template.js';
 
 const debug = createDebug('forgejo-semantic-release:fail');
 

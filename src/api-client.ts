@@ -1,7 +1,6 @@
 import { createReadStream } from 'node:fs';
-import { stat } from 'node:fs/promises';
-import { lookup } from 'mime-types';
 import createDebug from 'debug';
+import { lookup } from 'mime-types';
 import type {
   ResolvedConfig,
   ForgejoUser,
@@ -24,10 +23,10 @@ interface FetchOptions {
 }
 
 export class ForgejoApiClient {
-  private baseUrl: string;
-  private token: string;
-  private owner: string;
-  private repo: string;
+  private readonly baseUrl: string;
+  private readonly token: string;
+  private readonly owner: string;
+  private readonly repo: string;
 
   constructor(config: ResolvedConfig) {
     this.baseUrl = `${config.forgejoUrl}/api/v1`;
@@ -142,7 +141,6 @@ export class ForgejoApiClient {
     debug('Uploading asset %s to release %d', fileName, releaseId);
 
     const contentType = mimeType || lookup(fileName) || 'application/octet-stream';
-    const fileStats = await stat(filePath);
 
     // Read file into buffer for fetch
     const chunks: Buffer[] = [];
@@ -157,8 +155,8 @@ export class ForgejoApiClient {
     const boundary = `----FormBoundary${Date.now()}`;
     const header = Buffer.from(
       `--${boundary}\r\n` +
-      `Content-Disposition: form-data; name="attachment"; filename="${fileName}"\r\n` +
-      `Content-Type: ${contentType}\r\n\r\n`
+        `Content-Disposition: form-data; name="attachment"; filename="${fileName}"\r\n` +
+        `Content-Type: ${contentType}\r\n\r\n`
     );
     const footer = Buffer.from(`\r\n--${boundary}--\r\n`);
     const body = Buffer.concat([header, fileBuffer, footer]);
@@ -186,7 +184,7 @@ export class ForgejoApiClient {
       throw error;
     }
 
-    const result = await response.json() as ForgejoAsset;
+    const result = (await response.json()) as ForgejoAsset;
     debug('Asset uploaded with id %d', result.id);
     return result;
   }
@@ -196,9 +194,7 @@ export class ForgejoApiClient {
    */
   async getIssue(issueNumber: number): Promise<ForgejoIssue> {
     debug('Getting issue #%d', issueNumber);
-    return this.request<ForgejoIssue>(
-      `repos/${this.owner}/${this.repo}/issues/${issueNumber}`
-    );
+    return this.request<ForgejoIssue>(`repos/${this.owner}/${this.repo}/issues/${issueNumber}`);
   }
 
   /**
@@ -223,10 +219,9 @@ export class ForgejoApiClient {
     if (options.query) {
       searchParams.q = options.query;
     }
-    return this.request<ForgejoIssue[]>(
-      `repos/${this.owner}/${this.repo}/issues`,
-      { searchParams }
-    );
+    return this.request<ForgejoIssue[]>(`repos/${this.owner}/${this.repo}/issues`, {
+      searchParams,
+    });
   }
 
   /**
@@ -254,13 +249,10 @@ export class ForgejoApiClient {
    */
   async createIssue(options: CreateIssueOptions): Promise<ForgejoIssue> {
     debug('Creating issue: %s', options.title);
-    const response = await this.request<ForgejoIssue>(
-      `repos/${this.owner}/${this.repo}/issues`,
-      {
-        method: 'POST',
-        body: JSON.stringify(options),
-      }
-    );
+    const response = await this.request<ForgejoIssue>(`repos/${this.owner}/${this.repo}/issues`, {
+      method: 'POST',
+      body: JSON.stringify(options),
+    });
     debug('Issue created: #%d', response.number);
     return response;
   }
@@ -273,13 +265,10 @@ export class ForgejoApiClient {
     options: Partial<CreateIssueOptions & { state: 'open' | 'closed' }>
   ): Promise<ForgejoIssue> {
     debug('Updating issue #%d', issueNumber);
-    return this.request<ForgejoIssue>(
-      `repos/${this.owner}/${this.repo}/issues/${issueNumber}`,
-      {
-        method: 'PATCH',
-        body: JSON.stringify(options),
-      }
-    );
+    return this.request<ForgejoIssue>(`repos/${this.owner}/${this.repo}/issues/${issueNumber}`, {
+      method: 'PATCH',
+      body: JSON.stringify(options),
+    });
   }
 
   /**
@@ -303,10 +292,7 @@ export class ForgejoApiClient {
   /**
    * Create a comment on an issue
    */
-  async createIssueComment(
-    issueNumber: number,
-    body: string
-  ): Promise<ForgejoComment> {
+  async createIssueComment(issueNumber: number, body: string): Promise<ForgejoComment> {
     debug('Creating comment on issue #%d', issueNumber);
     const response = await this.request<ForgejoComment>(
       `repos/${this.owner}/${this.repo}/issues/${issueNumber}/comments`,
@@ -322,10 +308,7 @@ export class ForgejoApiClient {
   /**
    * Add labels to an issue
    */
-  async addLabelsToIssue(
-    issueNumber: number,
-    labels: string[]
-  ): Promise<ForgejoIssue> {
+  async addLabelsToIssue(issueNumber: number, labels: string[]): Promise<ForgejoIssue> {
     debug('Adding labels to issue #%d: %s', issueNumber, labels.join(', '));
     // Forgejo expects label IDs, but we can use the labels endpoint
     // that accepts label names via POST body

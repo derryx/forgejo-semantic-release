@@ -75,20 +75,12 @@ describe('resolveConfig', () => {
 
   describe('URL resolution', () => {
     it('should use forgejoUrl from plugin config', () => {
-      const config = resolveConfig(
-        { forgejoUrl: 'https://forgejo.example.com' },
-        {},
-        '/tmp'
-      );
+      const config = resolveConfig({ forgejoUrl: 'https://forgejo.example.com' }, {}, '/tmp');
       expect(config.forgejoUrl).toBe('https://forgejo.example.com');
     });
 
     it('should use FORGEJO_URL from environment', () => {
-      const config = resolveConfig(
-        {},
-        { FORGEJO_URL: 'https://env.forgejo.com' },
-        '/tmp'
-      );
+      const config = resolveConfig({}, { FORGEJO_URL: 'https://env.forgejo.com' }, '/tmp');
       expect(config.forgejoUrl).toBe('https://env.forgejo.com');
     });
 
@@ -98,31 +90,19 @@ describe('resolveConfig', () => {
     });
 
     it('should strip trailing slash from URL', () => {
-      const config = resolveConfig(
-        { forgejoUrl: 'https://forgejo.example.com/' },
-        {},
-        '/tmp'
-      );
+      const config = resolveConfig({ forgejoUrl: 'https://forgejo.example.com/' }, {}, '/tmp');
       expect(config.forgejoUrl).toBe('https://forgejo.example.com');
     });
 
     it('should strip multiple trailing slashes', () => {
-      const config = resolveConfig(
-        { forgejoUrl: 'https://forgejo.example.com///' },
-        {},
-        '/tmp'
-      );
+      const config = resolveConfig({ forgejoUrl: 'https://forgejo.example.com///' }, {}, '/tmp');
       expect(config.forgejoUrl).toBe('https://forgejo.example.com');
     });
   });
 
   describe('assets normalization', () => {
     it('should handle undefined assets', () => {
-      const config = resolveConfig(
-        { forgejoUrl: 'https://forgejo.example.com' },
-        {},
-        '/tmp'
-      );
+      const config = resolveConfig({ forgejoUrl: 'https://forgejo.example.com' }, {}, '/tmp');
       expect(config.assets).toEqual([]);
     });
 
@@ -186,11 +166,7 @@ describe('resolveConfig', () => {
 
   describe('success comment configuration', () => {
     it('should use default success comment', () => {
-      const config = resolveConfig(
-        { forgejoUrl: 'https://forgejo.example.com' },
-        {},
-        '/tmp'
-      );
+      const config = resolveConfig({ forgejoUrl: 'https://forgejo.example.com' }, {}, '/tmp');
       expect(config.successComment).toContain(':tada:');
     });
 
@@ -221,11 +197,7 @@ describe('resolveConfig', () => {
 
   describe('fail configuration', () => {
     it('should use default fail title', () => {
-      const config = resolveConfig(
-        { forgejoUrl: 'https://forgejo.example.com' },
-        {},
-        '/tmp'
-      );
+      const config = resolveConfig({ forgejoUrl: 'https://forgejo.example.com' }, {}, '/tmp');
       expect(config.failTitle).toContain('automated release failed');
     });
 
@@ -242,11 +214,7 @@ describe('resolveConfig', () => {
     });
 
     it('should use default fail comment', () => {
-      const config = resolveConfig(
-        { forgejoUrl: 'https://forgejo.example.com' },
-        {},
-        '/tmp'
-      );
+      const config = resolveConfig({ forgejoUrl: 'https://forgejo.example.com' }, {}, '/tmp');
       expect(config.failComment).toContain('Automated release failed');
     });
 
@@ -265,11 +233,7 @@ describe('resolveConfig', () => {
 
   describe('labels and assignees', () => {
     it('should use default labels', () => {
-      const config = resolveConfig(
-        { forgejoUrl: 'https://forgejo.example.com' },
-        {},
-        '/tmp'
-      );
+      const config = resolveConfig({ forgejoUrl: 'https://forgejo.example.com' }, {}, '/tmp');
       expect(config.labels).toEqual(['semantic-release']);
     });
 
@@ -286,11 +250,7 @@ describe('resolveConfig', () => {
     });
 
     it('should have empty assignees by default', () => {
-      const config = resolveConfig(
-        { forgejoUrl: 'https://forgejo.example.com' },
-        {},
-        '/tmp'
-      );
+      const config = resolveConfig({ forgejoUrl: 'https://forgejo.example.com' }, {}, '/tmp');
       expect(config.assignees).toEqual([]);
     });
 
@@ -309,11 +269,7 @@ describe('resolveConfig', () => {
 
   describe('released labels', () => {
     it('should be false by default', () => {
-      const config = resolveConfig(
-        { forgejoUrl: 'https://forgejo.example.com' },
-        {},
-        '/tmp'
-      );
+      const config = resolveConfig({ forgejoUrl: 'https://forgejo.example.com' }, {}, '/tmp');
       expect(config.releasedLabels).toBe(false);
     });
 
