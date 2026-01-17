@@ -57,7 +57,7 @@ jobs:
       - name: Configure npm registry
         run: |
           echo "@thomas:registry=https://forgejo.peuss.de/api/packages/thomas/npm/" >> .npmrc
-          echo "//forgejo.peuss.de/api/packages/thomas/npm/:_authToken=\${FORGEJO_TOKEN}" >> .npmrc
+          echo "//forgejo.peuss.de/api/packages/thomas/npm/:_authToken=\${NPM_TOKEN}" >> .npmrc
 
       - name: Release
         env:
