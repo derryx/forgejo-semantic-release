@@ -16,17 +16,17 @@ jobs:
         uses: https://forgejo.peuss.de/actions/checkout@v5
         with:
           fetch-depth: 0
-#      - name: setup node
-#        uses: https://forgejo.peuss.de/actions/setup-node@v6
-#        with:
-#          node-version: 24
-#      - name: Cache npm dependencies
-#        uses: https://forgejo.peuss.de/actions/cache@v4
-#        with:
-#          path: ~/.npm
-#          key: ${{ runner.os }}-npm-${{ hashFiles('package-lock.json') }}
-#          restore-keys: |
-#            ${{ runner.os }}-npm-
+      - name: setup node
+        uses: https://forgejo.peuss.de/actions/setup-node@v6
+        with:
+          node-version: 24
+      - name: Cache npm dependencies
+        uses: https://forgejo.peuss.de/actions/cache@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-npm-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-npm-
 
       - name: Install dependencies
         run: npm ci
@@ -52,23 +52,23 @@ jobs:
         with:
           fetch-depth: 0
           token: ${{ secrets.FORGEJO_TOKEN }}
-#      - name: setup node
-#        uses: https://forgejo.peuss.de/actions/setup-node@v6
-#        with:
-#          node-version: 24
+      - name: setup node
+        uses: https://forgejo.peuss.de/actions/setup-node@v6
+        with:
+          node-version: 24
       - name: Configure git
         run: |
           git config --global user.email "actions@forgejo.peuss.de"
           git config --global user.name "Forgejo Actions"
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
 
-#      - name: Cache npm dependencies
-#        uses: https://forgejo.peuss.de/actions/cache@v4
-#        with:
-#          path: ~/.npm
-#          key: ${{ runner.os }}-npm-${{ hashFiles('package-lock.json') }}
-#          restore-keys: |
-#            ${{ runner.os }}-npm-
+      - name: Cache npm dependencies
+        uses: https://forgejo.peuss.de/actions/cache@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-npm-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-npm-
 
       - name: Install dependencies
         run: npm ci
