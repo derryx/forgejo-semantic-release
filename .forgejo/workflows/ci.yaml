@@ -21,7 +21,7 @@ jobs:
         with:
           node-version: 24
       - name: Cache npm dependencies
-        uses: actions/cache@v4
+        uses: https://forgejo.peuss.de/actions/cache@v4
         with:
           path: ~/.npm
           key: ${{ runner.os }}-npm-${{ hashFiles('package-lock.json') }}
@@ -63,7 +63,7 @@ jobs:
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
 
       - name: Cache npm dependencies
-        uses: actions/cache@v4
+        uses: https://forgejo.peuss.de/actions/cache@v4
         with:
           path: ~/.npm
           key: ${{ runner.os }}-npm-${{ hashFiles('package-lock.json') }}
