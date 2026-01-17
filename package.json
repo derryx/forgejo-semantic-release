@@ -44,6 +44,9 @@
     "url": "https://forgejo.peuss.de/thomas/forgejo-semantic-release.git"
   },
   "license": "MIT",
+  "publishConfig": {
+    "registry": "https://forgejo.peuss.de/api/packages/thomas/npm/"
+  },
   "engines": {
     "node": ">=18.0.0"
   },

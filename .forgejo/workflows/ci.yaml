@@ -62,4 +62,5 @@ jobs:
       - name: Release
         env:
           FORGEJO_TOKEN: ${{ secrets.FORGEJO_TOKEN }}
+          NPM_TOKEN: ${{ secrets.FORGEJO_TOKEN }}
         run: npx semantic-release
