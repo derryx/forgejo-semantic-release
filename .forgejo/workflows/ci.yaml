@@ -20,13 +20,13 @@ jobs:
         uses: https://forgejo.peuss.de/actions/setup-node@v6
         with:
           node-version: 24
-      - name: Cache npm dependencies
-        uses: https://forgejo.peuss.de/actions/cache@v4
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-npm-${{ hashFiles('package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-npm-
+#      - name: Cache npm dependencies
+#        uses: https://forgejo.peuss.de/actions/cache@v4
+#        with:
+#          path: ~/.npm
+#          key: ${{ runner.os }}-npm-${{ hashFiles('package-lock.json') }}
+#          restore-keys: |
+#            ${{ runner.os }}-npm-
 
       - name: Install dependencies
         run: npm ci
@@ -62,13 +62,13 @@ jobs:
           git config --global user.name "Forgejo Actions"
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
 
-      - name: Cache npm dependencies
-        uses: https://forgejo.peuss.de/actions/cache@v4
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-npm-${{ hashFiles('package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-npm-
+#      - name: Cache npm dependencies
+#        uses: https://forgejo.peuss.de/actions/cache@v4
+#        with:
+#          path: ~/.npm
+#          key: ${{ runner.os }}-npm-${{ hashFiles('package-lock.json') }}
+#          restore-keys: |
+#            ${{ runner.os }}-npm-
 
       - name: Install dependencies
         run: npm ci
