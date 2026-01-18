@@ -9,11 +9,11 @@ const debug = createDebug('forgejo-semantic-release:success');
 // Regex patterns to extract issue references from commit messages
 const ISSUE_PATTERNS = [
   // Matches: fixes #123, fix #123, fixed #123
-  /(?:fix(?:e[sd])?)\s*#(\d+)/gi,
+  /fix(?:e[sd])?\s*#(\d+)/gi,
   // Matches: closes #123, close #123, closed #123
-  /(?:close[sd]?)\s*#(\d+)/gi,
+  /close[sd]?\s*#(\d+)/gi,
   // Matches: resolves #123, resolve #123, resolved #123
-  /(?:resolve[sd]?)\s*#(\d+)/gi,
+  /resolve[sd]?\s*#(\d+)/gi,
   // Matches: #123 (standalone reference)
   /(?:^|\s)#(\d+)(?:\s|$|[,.])/gi,
 ];
