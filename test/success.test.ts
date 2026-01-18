@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { success } from '../src';
 import { ForgejoApiClient } from '../src/api-client.js';
-import { success } from '../src/success.js';
 import { createMockContext, createMockConfig, mockResponses } from './helpers/mock-context.js';
 import { setupMockAgent, cleanupMock, getMockPool, apiPath } from './helpers/mock-forgejo.js';
 

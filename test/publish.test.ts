@@ -1,7 +1,7 @@
 import path from 'node:path';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { publish } from '../src';
 import { ForgejoApiClient } from '../src/api-client.js';
-import { publish } from '../src/publish.js';
 import { createMockContext, createMockConfig, mockResponses } from './helpers/mock-context.js';
 import { setupMockAgent, cleanupMock, getMockPool, apiPath } from './helpers/mock-forgejo.js';
 
