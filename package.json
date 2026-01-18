@@ -48,7 +48,7 @@
     "registry": "https://forgejo.peuss.de/api/packages/thomas/npm/"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=22.0.0"
   },
   "peerDependencies": {
     "semantic-release": ">=20.0.0"
@@ -71,6 +71,7 @@
     "@types/node": "^20.10.0",
     "@typescript-eslint/eslint-plugin": "^6.0.0",
     "@typescript-eslint/parser": "^6.0.0",
+    "@vitest/coverage-v8": "^4.0.0",
     "eslint": "^8.56.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-import-resolver-typescript": "^4.4.4",
@@ -81,6 +82,6 @@
     "tsdown": "^0.20.0-beta.3",
     "typescript": "^5.3.0",
     "undici": "^7.18.2",
-    "vitest": "^1.0.0"
+    "vitest": "^4.0.0"
   }
 }
