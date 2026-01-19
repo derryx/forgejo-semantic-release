@@ -125,7 +125,8 @@ async function processIssue(params: ProcessIssueParams): Promise<boolean> {
   }
 
   // Generate and post comment
-  const commentBody = compileTemplate(config.successComment, {
+  // Note: successComment is guaranteed to be string here (false case handled in success())
+  const commentBody = compileTemplate(config.successComment as string, {
     ...templateContext,
     issue,
   });

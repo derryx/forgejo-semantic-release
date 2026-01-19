@@ -1,0 +1,12 @@
+{
+  "$schema": "./node_modules/@stryker-mutator/core/schema/stryker-schema.json",
+  "mutate": ["src/**/*.ts", "!src/index.ts"],
+  "testRunner": "vitest",
+  "checkers": ["typescript"],
+  "tsconfigFile": "tsconfig.json",
+  "reporters": ["html", "json", "clear-text", "progress"],
+  "concurrency": 4,
+  "timeoutMS": 10000,
+  "incremental": true,
+  "ignoreStatic": true
+}
