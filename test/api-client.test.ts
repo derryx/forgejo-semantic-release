@@ -134,6 +134,18 @@ describe('ForgejoApiClient', () => {
 
       expect(release).toBeNull();
     });
+
+    it('should throw on non-404 errors', async () => {
+      const pool = getMockPool(baseUrl);
+      pool
+        .intercept({
+          path: apiPath('/repos/owner/repo/releases/tags/v1.0.0'),
+          method: 'GET',
+        })
+        .reply(500, { message: 'Internal Server Error' });
+
+      await expect(client.getReleaseByTag('v1.0.0')).rejects.toThrow();
+    });
   });
 
   describe('getIssue', () => {

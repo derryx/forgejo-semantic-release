@@ -2,16 +2,20 @@ import eslint from '@eslint/js';
 import tseslint from 'typescript-eslint';
 import importX from 'eslint-plugin-import-x';
 import vitest from '@vitest/eslint-plugin';
+import yml from 'eslint-plugin-yml';
 import prettier from 'eslint-config-prettier';
 import globals from 'globals';
 
 export default tseslint.config(
+  {
+    ignores: ['dist/', 'node_modules/', '**/*.js', '**/*.cjs', '**/*.mjs'],
+  },
   eslint.configs.recommended,
-  ...tseslint.configs.recommendedTypeChecked,
-  importX.flatConfigs.recommended,
-  importX.flatConfigs.typescript,
+  ...yml.configs['flat/recommended'],
   prettier,
   {
+    files: ['**/*.ts'],
+    extends: [...tseslint.configs.recommendedTypeChecked, importX.flatConfigs.recommended, importX.flatConfigs.typescript],
     languageOptions: {
       ecmaVersion: 'latest',
       sourceType: 'module',
@@ -73,8 +77,5 @@ export default tseslint.config(
       ...vitest.configs.recommended.rules,
       'vitest/expect-expect': 'error',
     },
-  },
-  {
-    ignores: ['dist/', 'node_modules/', '**/*.js', '**/*.cjs', '**/*.mjs'],
   }
 );

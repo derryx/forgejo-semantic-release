@@ -370,4 +370,230 @@ describe('success', () => {
     // Verify comment was posted (labels are added after commenting)
     expect(context.logger.log).toHaveBeenCalledWith('Commented on issue #123');
   });
+
+  it('should skip issue when successCommentCondition evaluates to false', async () => {
+    const pool = getMockPool(baseUrl);
+
+    pool
+      .intercept({
+        path: apiPath('/repos/owner/repo/issues/123'),
+        method: 'GET',
+      })
+      .reply(200, { ...mockResponses.issue, state: 'open' });
+
+    pool
+      .intercept({
+        path: (path) => path.startsWith(apiPath('/repos/owner/repo/issues')),
+        method: 'GET',
+      })
+      .reply(200, []);
+
+    const config = createMockConfig({
+      // Condition that evaluates to false - only comment on closed issues
+      successCommentCondition: "<%= issue.state === 'closed' %>",
+    });
+    const context = createMockContext({
+      forgejoConfig: config,
+      forgejoClient: new ForgejoApiClient(config),
+      commits: [
+        {
+          hash: 'abc123',
+          message: 'feat: feature\n\nfixes #123',
+        },
+      ],
+      releases: [
+        {
+          name: 'Forgejo release',
+          url: 'https://forgejo.example.com/releases/v1.0.0',
+        },
+      ],
+    });
+
+    await success({}, context);
+
+    // Should not comment because condition is false
+    expect(context.logger.log).not.toHaveBeenCalledWith('Commented on issue #123');
+  });
+
+  it('should continue gracefully when adding labels fails', async () => {
+    const pool = getMockPool(baseUrl);
+
+    pool
+      .intercept({
+        path: apiPath('/repos/owner/repo/issues/123'),
+        method: 'GET',
+      })
+      .reply(200, mockResponses.issue);
+
+    pool
+      .intercept({
+        path: apiPath('/repos/owner/repo/issues/123/comments'),
+        method: 'GET',
+      })
+      .reply(200, []);
+
+    pool
+      .intercept({
+        path: apiPath('/repos/owner/repo/issues/123/comments'),
+        method: 'POST',
+      })
+      .reply(201, mockResponses.comment);
+
+    // Labels endpoint fails
+    pool
+      .intercept({
+        path: apiPath('/repos/owner/repo/issues/123/labels'),
+        method: 'POST',
+      })
+      .reply(500, { message: 'Internal Server Error' });
+
+    pool
+      .intercept({
+        path: (path) => path.startsWith(apiPath('/repos/owner/repo/issues')),
+        method: 'GET',
+      })
+      .reply(200, []);
+
+    const config = createMockConfig({
+      releasedLabels: ['released'],
+    });
+    const context = createMockContext({
+      forgejoConfig: config,
+      forgejoClient: new ForgejoApiClient(config),
+      commits: [
+        {
+          hash: 'abc123',
+          message: 'feat: feature\n\nfixes #123',
+        },
+      ],
+      releases: [
+        {
+          name: 'Forgejo release',
+          url: 'https://forgejo.example.com/releases/v1.0.0',
+        },
+      ],
+    });
+
+    // Should not throw, label failure is handled gracefully
+    await success({}, context);
+
+    // Comment should still be posted even if labels fail
+    expect(context.logger.log).toHaveBeenCalledWith('Commented on issue #123');
+  });
+
+  it('should handle error when checking for existing comments fails', async () => {
+    const pool = getMockPool(baseUrl);
+
+    pool
+      .intercept({
+        path: apiPath('/repos/owner/repo/issues/123'),
+        method: 'GET',
+      })
+      .reply(200, mockResponses.issue);
+
+    // Comments endpoint fails
+    pool
+      .intercept({
+        path: apiPath('/repos/owner/repo/issues/123/comments'),
+        method: 'GET',
+      })
+      .reply(500, { message: 'Internal Server Error' });
+
+    // Comment is still posted (hasExistingReleaseComment returns false on error)
+    pool
+      .intercept({
+        path: apiPath('/repos/owner/repo/issues/123/comments'),
+        method: 'POST',
+      })
+      .reply(201, mockResponses.comment);
+
+    pool
+      .intercept({
+        path: (path) => path.startsWith(apiPath('/repos/owner/repo/issues')),
+        method: 'GET',
+      })
+      .reply(200, []);
+
+    const config = createMockConfig();
+    const context = createMockContext({
+      forgejoConfig: config,
+      forgejoClient: new ForgejoApiClient(config),
+      commits: [
+        {
+          hash: 'abc123',
+          message: 'feat: feature\n\nfixes #123',
+        },
+      ],
+      releases: [
+        {
+          name: 'Forgejo release',
+          url: 'https://forgejo.example.com/releases/v1.0.0',
+        },
+      ],
+    });
+
+    await success({}, context);
+
+    // Comment should be posted (error checking existing comments returns false)
+    expect(context.logger.log).toHaveBeenCalledWith('Commented on issue #123');
+  });
+
+  it('should warn when issue processing throws an unexpected error', async () => {
+    const pool = getMockPool(baseUrl);
+
+    pool
+      .intercept({
+        path: apiPath('/repos/owner/repo/issues/123'),
+        method: 'GET',
+      })
+      .reply(200, mockResponses.issue);
+
+    pool
+      .intercept({
+        path: apiPath('/repos/owner/repo/issues/123/comments'),
+        method: 'GET',
+      })
+      .reply(200, []);
+
+    // Comment creation fails with an unexpected error
+    pool
+      .intercept({
+        path: apiPath('/repos/owner/repo/issues/123/comments'),
+        method: 'POST',
+      })
+      .reply(500, { message: 'Internal Server Error' });
+
+    pool
+      .intercept({
+        path: (path) => path.startsWith(apiPath('/repos/owner/repo/issues')),
+        method: 'GET',
+      })
+      .reply(200, []);
+
+    const config = createMockConfig();
+    const context = createMockContext({
+      forgejoConfig: config,
+      forgejoClient: new ForgejoApiClient(config),
+      commits: [
+        {
+          hash: 'abc123',
+          message: 'feat: feature\n\nfixes #123',
+        },
+      ],
+      releases: [
+        {
+          name: 'Forgejo release',
+          url: 'https://forgejo.example.com/releases/v1.0.0',
+        },
+      ],
+    });
+
+    // Should not throw, errors are caught and logged
+    await success({}, context);
+
+    // Should warn about the failure
+    expect(context.logger.warn).toHaveBeenCalledWith(
+      expect.stringContaining('Failed to process issue #123')
+    );
+  });
 });

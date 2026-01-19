@@ -38,19 +38,8 @@ export function parseGitUrl(remoteUrl: string): RepositoryInfo | null {
     };
   }
 
-  // Try SSH with port: ssh://git@host:port/owner/repo (must be before generic ssh:// check)
-  const sshPortMatch = /^ssh:\/\/git@([^:/]+)(?::\d+)?\/([^/]+)\/([^/]+)$/.exec(cleanUrl);
-  if (sshPortMatch) {
-    const [, host, owner, repo] = sshPortMatch;
-    return {
-      url: `https://${host}`,
-      owner,
-      repo,
-    };
-  }
-
-  // Try SSH with protocol: ssh://git@host/owner/repo
-  const sshProtocolMatch = /^ssh:\/\/git@([^/]+)\/([^/]+)\/([^/]+)$/.exec(cleanUrl);
+  // Try SSH with protocol: ssh://git@host/owner/repo or ssh://git@host:port/owner/repo
+  const sshProtocolMatch = /^ssh:\/\/git@([^:/]+)(?::\d+)?\/([^/]+)\/([^/]+)$/.exec(cleanUrl);
   if (sshProtocolMatch) {
     const [, host, owner, repo] = sshProtocolMatch;
     return {
