@@ -183,4 +183,214 @@ describe('publish', () => {
 
     expect(result.url).toBeDefined();
   });
+
+  it('should create release with draft: false', async () => {
+    const pool = getMockPool(baseUrl);
+    let capturedBody: Record<string, unknown> = {};
+
+    pool
+      .intercept({
+        path: apiPath('/repos/owner/repo/releases'),
+        method: 'POST',
+        body: (body) => {
+          capturedBody = JSON.parse(body as string);
+          return true;
+        },
+      })
+      .reply(201, mockResponses.release);
+
+    const config = createMockConfig();
+    const context = createMockContext({
+      forgejoConfig: config,
+      forgejoClient: new ForgejoApiClient(config),
+    });
+
+    await publish({}, context);
+
+    expect(capturedBody.draft).toBe(false);
+  });
+
+  it('should not upload assets when assets array is empty', async () => {
+    const pool = getMockPool(baseUrl);
+    let assetUploadCalled = false;
+
+    pool
+      .intercept({
+        path: apiPath('/repos/owner/repo/releases'),
+        method: 'POST',
+      })
+      .reply(201, mockResponses.release);
+
+    // This intercept should NOT be called
+    pool
+      .intercept({
+        path: (path) => {
+          if (path.startsWith(apiPath('/repos/owner/repo/releases/1/assets'))) {
+            assetUploadCalled = true;
+          }
+          return path.startsWith(apiPath('/repos/owner/repo/releases/1/assets'));
+        },
+        method: 'POST',
+      })
+      .reply(201, mockResponses.asset);
+
+    const config = createMockConfig({ assets: [] }); // Empty assets array
+    const context = createMockContext({
+      forgejoConfig: config,
+      forgejoClient: new ForgejoApiClient(config),
+    });
+
+    await publish({}, context);
+
+    expect(assetUploadCalled).toBe(false);
+    // Also verify we didn't log "Uploading release assets..."
+    expect(context.logger.log).not.toHaveBeenCalledWith('Uploading release assets...');
+  });
+
+  it('should log uploading message only when assets exist', async () => {
+    const pool = getMockPool(baseUrl);
+
+    pool
+      .intercept({
+        path: apiPath('/repos/owner/repo/releases'),
+        method: 'POST',
+      })
+      .reply(201, mockResponses.release);
+
+    pool
+      .intercept({
+        path: (path) => path.startsWith(apiPath('/repos/owner/repo/releases/1/assets')),
+        method: 'POST',
+      })
+      .reply(201, mockResponses.asset);
+
+    const config = createMockConfig({
+      assets: [{ path: 'test/fixtures/upload.txt' }],
+    });
+    const context = createMockContext({
+      forgejoConfig: config,
+      forgejoClient: new ForgejoApiClient(config),
+      cwd: path.resolve(__dirname, '..'),
+    });
+
+    await publish({}, context);
+
+    expect(context.logger.log).toHaveBeenCalledWith('Uploading release assets...');
+  });
+
+  it('should log uploaded assets count', async () => {
+    const pool = getMockPool(baseUrl);
+
+    pool
+      .intercept({
+        path: apiPath('/repos/owner/repo/releases'),
+        method: 'POST',
+      })
+      .reply(201, mockResponses.release);
+
+    pool
+      .intercept({
+        path: (path) => path.startsWith(apiPath('/repos/owner/repo/releases/1/assets')),
+        method: 'POST',
+      })
+      .reply(201, mockResponses.asset);
+
+    const config = createMockConfig({
+      assets: [{ path: 'test/fixtures/upload.txt' }],
+    });
+    const context = createMockContext({
+      forgejoConfig: config,
+      forgejoClient: new ForgejoApiClient(config),
+      cwd: path.resolve(__dirname, '..'),
+    });
+
+    await publish({}, context);
+
+    expect(context.logger.log).toHaveBeenCalledWith('Uploaded 1 asset(s)');
+  });
+
+  it('should log release created message with URL', async () => {
+    const pool = getMockPool(baseUrl);
+
+    pool
+      .intercept({
+        path: apiPath('/repos/owner/repo/releases'),
+        method: 'POST',
+      })
+      .reply(201, mockResponses.release);
+
+    const config = createMockConfig();
+    const context = createMockContext({
+      forgejoConfig: config,
+      forgejoClient: new ForgejoApiClient(config),
+    });
+
+    await publish({}, context);
+
+    expect(context.logger.log).toHaveBeenCalledWith(
+      'Release created: https://forgejo.example.com/owner/repo/releases/tag/v1.0.0'
+    );
+  });
+
+  it('should set prerelease to true for prerelease branches', async () => {
+    const pool = getMockPool(baseUrl);
+    let capturedBody: Record<string, unknown> = {};
+
+    pool
+      .intercept({
+        path: apiPath('/repos/owner/repo/releases'),
+        method: 'POST',
+        body: (body) => {
+          capturedBody = JSON.parse(body as string);
+          return true;
+        },
+      })
+      .reply(201, { ...mockResponses.release, prerelease: true });
+
+    const config = createMockConfig();
+    const context = createMockContext({
+      forgejoConfig: config,
+      forgejoClient: new ForgejoApiClient(config),
+      branch: {
+        name: 'beta',
+        prerelease: true,
+        channel: 'beta',
+      },
+    });
+
+    await publish({}, context);
+
+    expect(capturedBody.prerelease).toBe(true);
+  });
+
+  it('should set prerelease to false for non-prerelease branches', async () => {
+    const pool = getMockPool(baseUrl);
+    let capturedBody: Record<string, unknown> = {};
+
+    pool
+      .intercept({
+        path: apiPath('/repos/owner/repo/releases'),
+        method: 'POST',
+        body: (body) => {
+          capturedBody = JSON.parse(body as string);
+          return true;
+        },
+      })
+      .reply(201, mockResponses.release);
+
+    const config = createMockConfig();
+    const context = createMockContext({
+      forgejoConfig: config,
+      forgejoClient: new ForgejoApiClient(config),
+      branch: {
+        name: 'main',
+        prerelease: false,
+        channel: undefined,
+      },
+    });
+
+    await publish({}, context);
+
+    expect(capturedBody.prerelease).toBe(false);
+  });
 });

@@ -596,4 +596,514 @@ describe('success', () => {
       expect.stringContaining('Failed to process issue #123')
     );
   });
+
+  it('should post comment when existing comment has only version but not semantic-release', async () => {
+    const pool = getMockPool(baseUrl);
+
+    pool
+      .intercept({
+        path: apiPath('/repos/owner/repo/issues/123'),
+        method: 'GET',
+      })
+      .reply(200, mockResponses.issue);
+
+    // Comment has version but not "semantic-release" text
+    pool
+      .intercept({
+        path: apiPath('/repos/owner/repo/issues/123/comments'),
+        method: 'GET',
+      })
+      .reply(200, [
+        {
+          ...mockResponses.comment,
+          body: 'This mentions version 1.0.0 but is just a regular comment',
+        },
+      ]);
+
+    pool
+      .intercept({
+        path: apiPath('/repos/owner/repo/issues/123/comments'),
+        method: 'POST',
+      })
+      .reply(201, mockResponses.comment);
+
+    pool
+      .intercept({
+        path: (path) => path.startsWith(apiPath('/repos/owner/repo/issues')),
+        method: 'GET',
+      })
+      .reply(200, []);
+
+    const config = createMockConfig();
+    const context = createMockContext({
+      forgejoConfig: config,
+      forgejoClient: new ForgejoApiClient(config),
+      commits: [
+        {
+          hash: 'abc123',
+          message: 'feat: feature\n\nfixes #123',
+        },
+      ],
+      releases: [
+        {
+          name: 'Forgejo release',
+          url: 'https://forgejo.example.com/releases/v1.0.0',
+        },
+      ],
+    });
+
+    await success({}, context);
+
+    // Should post a comment since existing comment doesn't have BOTH version AND semantic-release
+    expect(context.logger.log).toHaveBeenCalledWith('Commented on issue #123');
+  });
+
+  it('should post comment when existing comment has semantic-release but not version', async () => {
+    const pool = getMockPool(baseUrl);
+
+    pool
+      .intercept({
+        path: apiPath('/repos/owner/repo/issues/123'),
+        method: 'GET',
+      })
+      .reply(200, mockResponses.issue);
+
+    // Comment has "semantic-release" but not the specific version
+    pool
+      .intercept({
+        path: apiPath('/repos/owner/repo/issues/123/comments'),
+        method: 'GET',
+      })
+      .reply(200, [
+        {
+          ...mockResponses.comment,
+          body: 'Released via semantic-release in 0.9.0',
+        },
+      ]);
+
+    pool
+      .intercept({
+        path: apiPath('/repos/owner/repo/issues/123/comments'),
+        method: 'POST',
+      })
+      .reply(201, mockResponses.comment);
+
+    pool
+      .intercept({
+        path: (path) => path.startsWith(apiPath('/repos/owner/repo/issues')),
+        method: 'GET',
+      })
+      .reply(200, []);
+
+    const config = createMockConfig();
+    const context = createMockContext({
+      forgejoConfig: config,
+      forgejoClient: new ForgejoApiClient(config),
+      commits: [
+        {
+          hash: 'abc123',
+          message: 'feat: feature\n\nfixes #123',
+        },
+      ],
+      releases: [
+        {
+          name: 'Forgejo release',
+          url: 'https://forgejo.example.com/releases/v1.0.0',
+        },
+      ],
+    });
+
+    await success({}, context);
+
+    // Should post a comment since existing comment has different version
+    expect(context.logger.log).toHaveBeenCalledWith('Commented on issue #123');
+  });
+
+  it('should return false from processIssue when getIssue fails', async () => {
+    const pool = getMockPool(baseUrl);
+
+    // Issue fetch fails with 404
+    pool
+      .intercept({
+        path: apiPath('/repos/owner/repo/issues/123'),
+        method: 'GET',
+      })
+      .reply(404, { message: 'Not Found' });
+
+    pool
+      .intercept({
+        path: (path) => path.startsWith(apiPath('/repos/owner/repo/issues')),
+        method: 'GET',
+      })
+      .reply(200, []);
+
+    const config = createMockConfig();
+    const context = createMockContext({
+      forgejoConfig: config,
+      forgejoClient: new ForgejoApiClient(config),
+      commits: [
+        {
+          hash: 'abc123',
+          message: 'feat: feature\n\nfixes #123',
+        },
+      ],
+      releases: [
+        {
+          name: 'Forgejo release',
+          url: 'https://forgejo.example.com/releases/v1.0.0',
+        },
+      ],
+    });
+
+    await success({}, context);
+
+    // Should not log "Commented on issue" or "Posted X success comment(s)"
+    expect(context.logger.log).not.toHaveBeenCalledWith('Commented on issue #123');
+    expect(context.logger.log).not.toHaveBeenCalledWith(
+      expect.stringContaining('Posted')
+    );
+  });
+
+  it('should respect successCommentCondition returning false and not post comment', async () => {
+    const pool = getMockPool(baseUrl);
+
+    pool
+      .intercept({
+        path: apiPath('/repos/owner/repo/issues/123'),
+        method: 'GET',
+      })
+      .reply(200, { ...mockResponses.issue, state: 'open' });
+
+    // Search for failure issues
+    pool
+      .intercept({
+        path: (path) => path.startsWith(apiPath('/repos/owner/repo/issues')),
+        method: 'GET',
+      })
+      .reply(200, []);
+
+    const config = createMockConfig({
+      // Condition evaluates to false - only comment on issues with 'bug' label
+      successCommentCondition: "<%= issue.labels && issue.labels.some(l => l.name === 'bug') %>",
+    });
+    const context = createMockContext({
+      forgejoConfig: config,
+      forgejoClient: new ForgejoApiClient(config),
+      commits: [
+        {
+          hash: 'abc123',
+          message: 'feat: feature\n\nfixes #123',
+        },
+      ],
+      releases: [
+        {
+          name: 'Forgejo release',
+          url: 'https://forgejo.example.com/releases/v1.0.0',
+        },
+      ],
+    });
+
+    await success({}, context);
+
+    // Should not comment because condition is false (issue has no 'bug' label)
+    expect(context.logger.log).not.toHaveBeenCalledWith('Commented on issue #123');
+  });
+
+  it('should skip labels when releasedLabels is false', async () => {
+    const pool = getMockPool(baseUrl);
+    let labelsEndpointCalled = false;
+
+    pool
+      .intercept({
+        path: apiPath('/repos/owner/repo/issues/123'),
+        method: 'GET',
+      })
+      .reply(200, mockResponses.issue);
+
+    pool
+      .intercept({
+        path: apiPath('/repos/owner/repo/issues/123/comments'),
+        method: 'GET',
+      })
+      .reply(200, []);
+
+    pool
+      .intercept({
+        path: apiPath('/repos/owner/repo/issues/123/comments'),
+        method: 'POST',
+      })
+      .reply(201, mockResponses.comment);
+
+    // This should NOT be called
+    pool
+      .intercept({
+        path: (path) => {
+          if (path === apiPath('/repos/owner/repo/issues/123/labels')) {
+            labelsEndpointCalled = true;
+          }
+          return path === apiPath('/repos/owner/repo/issues/123/labels');
+        },
+        method: 'POST',
+      })
+      .reply(200, mockResponses.issue);
+
+    pool
+      .intercept({
+        path: (path) => path.startsWith(apiPath('/repos/owner/repo/issues')),
+        method: 'GET',
+      })
+      .reply(200, []);
+
+    const config = createMockConfig({
+      releasedLabels: false, // Explicitly disabled
+    });
+    const context = createMockContext({
+      forgejoConfig: config,
+      forgejoClient: new ForgejoApiClient(config),
+      commits: [
+        {
+          hash: 'abc123',
+          message: 'feat: feature\n\nfixes #123',
+        },
+      ],
+      releases: [
+        {
+          name: 'Forgejo release',
+          url: 'https://forgejo.example.com/releases/v1.0.0',
+        },
+      ],
+    });
+
+    await success({}, context);
+
+    expect(context.logger.log).toHaveBeenCalledWith('Commented on issue #123');
+    expect(labelsEndpointCalled).toBe(false);
+  });
+
+  it('should skip labels when releasedLabels is empty array', async () => {
+    const pool = getMockPool(baseUrl);
+    let labelsEndpointCalled = false;
+
+    pool
+      .intercept({
+        path: apiPath('/repos/owner/repo/issues/123'),
+        method: 'GET',
+      })
+      .reply(200, mockResponses.issue);
+
+    pool
+      .intercept({
+        path: apiPath('/repos/owner/repo/issues/123/comments'),
+        method: 'GET',
+      })
+      .reply(200, []);
+
+    pool
+      .intercept({
+        path: apiPath('/repos/owner/repo/issues/123/comments'),
+        method: 'POST',
+      })
+      .reply(201, mockResponses.comment);
+
+    // This should NOT be called
+    pool
+      .intercept({
+        path: (path) => {
+          if (path === apiPath('/repos/owner/repo/issues/123/labels')) {
+            labelsEndpointCalled = true;
+          }
+          return path === apiPath('/repos/owner/repo/issues/123/labels');
+        },
+        method: 'POST',
+      })
+      .reply(200, mockResponses.issue);
+
+    pool
+      .intercept({
+        path: (path) => path.startsWith(apiPath('/repos/owner/repo/issues')),
+        method: 'GET',
+      })
+      .reply(200, []);
+
+    const config = createMockConfig({
+      releasedLabels: [], // Empty array
+    });
+    const context = createMockContext({
+      forgejoConfig: config,
+      forgejoClient: new ForgejoApiClient(config),
+      commits: [
+        {
+          hash: 'abc123',
+          message: 'feat: feature\n\nfixes #123',
+        },
+      ],
+      releases: [
+        {
+          name: 'Forgejo release',
+          url: 'https://forgejo.example.com/releases/v1.0.0',
+        },
+      ],
+    });
+
+    await success({}, context);
+
+    expect(context.logger.log).toHaveBeenCalledWith('Commented on issue #123');
+    expect(labelsEndpointCalled).toBe(false);
+  });
+
+  it('should process issue when successCommentCondition is not false', async () => {
+    const pool = getMockPool(baseUrl);
+
+    pool
+      .intercept({
+        path: apiPath('/repos/owner/repo/issues/123'),
+        method: 'GET',
+      })
+      .reply(200, { ...mockResponses.issue, state: 'closed' });
+
+    pool
+      .intercept({
+        path: apiPath('/repos/owner/repo/issues/123/comments'),
+        method: 'GET',
+      })
+      .reply(200, []);
+
+    pool
+      .intercept({
+        path: apiPath('/repos/owner/repo/issues/123/comments'),
+        method: 'POST',
+      })
+      .reply(201, mockResponses.comment);
+
+    pool
+      .intercept({
+        path: (path) => path.startsWith(apiPath('/repos/owner/repo/issues')),
+        method: 'GET',
+      })
+      .reply(200, []);
+
+    const config = createMockConfig({
+      // Condition that evaluates to true - comment on closed issues
+      successCommentCondition: "<%= issue.state === 'closed' %>",
+    });
+    const context = createMockContext({
+      forgejoConfig: config,
+      forgejoClient: new ForgejoApiClient(config),
+      commits: [
+        {
+          hash: 'abc123',
+          message: 'feat: feature\n\nfixes #123',
+        },
+      ],
+      releases: [
+        {
+          name: 'Forgejo release',
+          url: 'https://forgejo.example.com/releases/v1.0.0',
+        },
+      ],
+    });
+
+    await success({}, context);
+
+    // Should comment because condition is true
+    expect(context.logger.log).toHaveBeenCalledWith('Commented on issue #123');
+  });
+
+  it('should log posted comments count when comments were made', async () => {
+    const pool = getMockPool(baseUrl);
+
+    pool
+      .intercept({
+        path: apiPath('/repos/owner/repo/issues/123'),
+        method: 'GET',
+      })
+      .reply(200, mockResponses.issue);
+
+    pool
+      .intercept({
+        path: apiPath('/repos/owner/repo/issues/123/comments'),
+        method: 'GET',
+      })
+      .reply(200, []);
+
+    pool
+      .intercept({
+        path: apiPath('/repos/owner/repo/issues/123/comments'),
+        method: 'POST',
+      })
+      .reply(201, mockResponses.comment);
+
+    pool
+      .intercept({
+        path: (path) => path.startsWith(apiPath('/repos/owner/repo/issues')),
+        method: 'GET',
+      })
+      .reply(200, []);
+
+    const config = createMockConfig();
+    const context = createMockContext({
+      forgejoConfig: config,
+      forgejoClient: new ForgejoApiClient(config),
+      commits: [
+        {
+          hash: 'abc123',
+          message: 'feat: feature\n\nfixes #123',
+        },
+      ],
+      releases: [
+        {
+          name: 'Forgejo release',
+          url: 'https://forgejo.example.com/releases/v1.0.0',
+        },
+      ],
+    });
+
+    await success({}, context);
+
+    expect(context.logger.log).toHaveBeenCalledWith('Posted 1 success comment(s)');
+  });
+
+  it('should NOT log posted comments count when no comments were made', async () => {
+    const pool = getMockPool(baseUrl);
+
+    // Issue fetch fails - no comment will be posted
+    pool
+      .intercept({
+        path: apiPath('/repos/owner/repo/issues/123'),
+        method: 'GET',
+      })
+      .reply(404, { message: 'Not Found' });
+
+    pool
+      .intercept({
+        path: (path) => path.startsWith(apiPath('/repos/owner/repo/issues')),
+        method: 'GET',
+      })
+      .reply(200, []);
+
+    const config = createMockConfig();
+    const context = createMockContext({
+      forgejoConfig: config,
+      forgejoClient: new ForgejoApiClient(config),
+      commits: [
+        {
+          hash: 'abc123',
+          message: 'feat: feature\n\nfixes #123',
+        },
+      ],
+      releases: [
+        {
+          name: 'Forgejo release',
+          url: 'https://forgejo.example.com/releases/v1.0.0',
+        },
+      ],
+    });
+
+    await success({}, context);
+
+    // Should NOT log "Posted X success comment(s)" since commentedCount is 0
+    expect(context.logger.log).not.toHaveBeenCalledWith(
+      expect.stringMatching(/Posted \d+ success comment/)
+    );
+  });
 });

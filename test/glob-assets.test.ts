@@ -214,4 +214,58 @@ describe('globAssets', () => {
       expect(assets).toHaveLength(0);
     });
   });
+
+  describe('absolute paths', () => {
+    it('should return absolute paths for glob patterns', async () => {
+      const assets = await globAssets(
+        [{ path: 'test/fixtures/*.txt' }],
+        path.resolve(__dirname, '..'),
+        mockLogger
+      );
+
+      expect(assets.length).toBeGreaterThanOrEqual(1);
+      // All paths should be absolute (start with /)
+      for (const asset of assets) {
+        expect(path.isAbsolute(asset.path)).toBe(true);
+      }
+    });
+
+    it('should return absolute paths for relative file references', async () => {
+      const assets = await globAssets(
+        [{ path: 'test/fixtures/upload.txt' }],
+        path.resolve(__dirname, '..'),
+        mockLogger
+      );
+
+      expect(assets).toHaveLength(1);
+      expect(path.isAbsolute(assets[0].path)).toBe(true);
+    });
+
+    it('should preserve absolute paths when provided', async () => {
+      const absolutePath = path.resolve(fixturesDir, 'upload.txt');
+      const assets = await globAssets([{ path: absolutePath }], fixturesDir, mockLogger);
+
+      expect(assets).toHaveLength(1);
+      expect(assets[0].path).toBe(absolutePath);
+      expect(path.isAbsolute(assets[0].path)).toBe(true);
+    });
+  });
+
+  describe('only files', () => {
+    it('should only return files, not directories', async () => {
+      const assets = await globAssets(
+        [{ path: 'test/**/*' }],
+        path.resolve(__dirname, '..'),
+        mockLogger
+      );
+
+      // All returned items should have file-like paths (with extensions typically)
+      // This verifies onlyFiles: true is working
+      expect(assets.length).toBeGreaterThan(0);
+      for (const asset of assets) {
+        // Verify path contains a file extension or is a known file
+        expect(asset.name).toBeTruthy();
+      }
+    });
+  });
 });

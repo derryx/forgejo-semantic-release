@@ -227,7 +227,9 @@ describe('ForgejoApiClient', () => {
       const pool = getMockPool(baseUrl);
       pool
         .intercept({
-          path: (path) => path.startsWith(apiPath('/repos/owner/repo/issues')),
+          path: (path) =>
+            path.startsWith(apiPath('/repos/owner/repo/issues')) &&
+            path.includes('labels=bug%2Cenhancement'),
           method: 'GET',
         })
         .reply(200, [mockResponses.issue]);
@@ -235,6 +237,55 @@ describe('ForgejoApiClient', () => {
       const issues = await client.searchIssues('all', {
         labels: ['bug', 'enhancement'],
       });
+
+      expect(issues).toHaveLength(1);
+    });
+
+    it('should NOT include labels param when labels array is empty', async () => {
+      const pool = getMockPool(baseUrl);
+      pool
+        .intercept({
+          path: (path) =>
+            path.startsWith(apiPath('/repos/owner/repo/issues')) && !path.includes('labels='),
+          method: 'GET',
+        })
+        .reply(200, [mockResponses.issue]);
+
+      const issues = await client.searchIssues('all', {
+        labels: [],
+      });
+
+      expect(issues).toHaveLength(1);
+    });
+
+    it('should include query param when provided', async () => {
+      const pool = getMockPool(baseUrl);
+      pool
+        .intercept({
+          path: (path) =>
+            path.startsWith(apiPath('/repos/owner/repo/issues')) && path.includes('q='),
+          method: 'GET',
+        })
+        .reply(200, [mockResponses.issue]);
+
+      const issues = await client.searchIssues('open', {
+        query: 'search term',
+      });
+
+      expect(issues).toHaveLength(1);
+    });
+
+    it('should NOT include query param when not provided', async () => {
+      const pool = getMockPool(baseUrl);
+      pool
+        .intercept({
+          path: (path) =>
+            path.startsWith(apiPath('/repos/owner/repo/issues')) && !path.includes('q='),
+          method: 'GET',
+        })
+        .reply(200, [mockResponses.issue]);
+
+      const issues = await client.searchIssues('all', {});
 
       expect(issues).toHaveLength(1);
     });
@@ -375,6 +426,141 @@ describe('ForgejoApiClient', () => {
       const issue = await client.addLabelsToIssue(123, ['bug', 'urgent']);
 
       expect(issue).toBeDefined();
+    });
+  });
+
+  describe('request headers', () => {
+    it('should set Content-Type header to application/json for string body', async () => {
+      const pool = getMockPool(baseUrl);
+      let capturedHeaders: Record<string, string> = {};
+
+      pool
+        .intercept({
+          path: apiPath('/repos/owner/repo/issues'),
+          method: 'POST',
+          headers: (headers) => {
+            capturedHeaders = headers as Record<string, string>;
+            return true;
+          },
+        })
+        .reply(201, mockResponses.issue);
+
+      await client.createIssue({ title: 'Test', body: 'Test body' });
+
+      expect(capturedHeaders['content-type']).toBe('application/json');
+    });
+
+    it('should NOT set Content-Type header for GET requests without body', async () => {
+      const pool = getMockPool(baseUrl);
+      let capturedHeaders: Record<string, string> = {};
+
+      pool
+        .intercept({
+          path: apiPath('/user'),
+          method: 'GET',
+          headers: (headers) => {
+            capturedHeaders = headers as Record<string, string>;
+            return true;
+          },
+        })
+        .reply(200, mockResponses.user);
+
+      await client.getCurrentUser();
+
+      // Content-Type should not be set for GET requests without body
+      expect(capturedHeaders['content-type']).toBeUndefined();
+    });
+
+    it('should include Authorization header in requests', async () => {
+      const pool = getMockPool(baseUrl);
+      let capturedHeaders: Record<string, string> = {};
+
+      pool
+        .intercept({
+          path: apiPath('/user'),
+          method: 'GET',
+          headers: (headers) => {
+            capturedHeaders = headers as Record<string, string>;
+            return true;
+          },
+        })
+        .reply(200, mockResponses.user);
+
+      await client.getCurrentUser();
+
+      expect(capturedHeaders['authorization']).toBe('token test-token-123');
+    });
+  });
+
+  describe('uploadAsset', () => {
+    it('should upload asset with auto-detected MIME type', async () => {
+      const pool = getMockPool(baseUrl);
+
+      pool
+        .intercept({
+          path: (path) => path.startsWith(apiPath('/repos/owner/repo/releases/1/assets')),
+          method: 'POST',
+        })
+        .reply(201, mockResponses.asset);
+
+      // Upload a .txt file - should auto-detect as text/plain
+      const asset = await client.uploadAsset(1, 'test/fixtures/upload.txt', 'upload.txt');
+
+      expect(asset.id).toBe(1);
+    });
+
+    it('should upload asset with custom MIME type when provided', async () => {
+      const pool = getMockPool(baseUrl);
+      let capturedContentType = '';
+
+      pool
+        .intercept({
+          path: (path) => path.startsWith(apiPath('/repos/owner/repo/releases/1/assets')),
+          method: 'POST',
+          headers: (headers) => {
+            const contentType = (headers as Record<string, string>)['content-type'];
+            if (contentType) {
+              capturedContentType = contentType;
+            }
+            return true;
+          },
+        })
+        .reply(201, mockResponses.asset);
+
+      await client.uploadAsset(1, 'test/fixtures/upload.txt', 'upload.txt', 'application/custom');
+
+      expect(capturedContentType).toContain('multipart/form-data');
+    });
+
+    it('should fallback to application/octet-stream for unknown file types', async () => {
+      const pool = getMockPool(baseUrl);
+
+      pool
+        .intercept({
+          path: (path) => path.startsWith(apiPath('/repos/owner/repo/releases/1/assets')),
+          method: 'POST',
+        })
+        .reply(201, mockResponses.asset);
+
+      // Upload with an unknown extension - should fallback to application/octet-stream
+      const asset = await client.uploadAsset(1, 'test/fixtures/upload.txt', 'file.unknownext');
+
+      expect(asset.id).toBe(1);
+    });
+
+    it('should throw error when upload fails', async () => {
+      const pool = getMockPool(baseUrl);
+
+      pool
+        .intercept({
+          path: (path) => path.startsWith(apiPath('/repos/owner/repo/releases/1/assets')),
+          method: 'POST',
+        })
+        .reply(500, { message: 'Internal Server Error' });
+
+      await expect(
+        client.uploadAsset(1, 'test/fixtures/upload.txt', 'upload.txt')
+      ).rejects.toThrow();
     });
   });
 });

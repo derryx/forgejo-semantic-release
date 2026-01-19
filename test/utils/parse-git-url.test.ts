@@ -101,4 +101,70 @@ describe('parseGitUrl', () => {
       expect(result).toBeNull();
     });
   });
+
+  describe('edge cases', () => {
+    it('should handle URL with trailing slash but no .git', () => {
+      const result = parseGitUrl('https://forgejo.example.com/owner/repo/');
+
+      // Trailing slash without .git results in 3 path segments, which fails the regex
+      expect(result).toBeNull();
+    });
+
+    it('should parse HTTPS URL with port', () => {
+      const result = parseGitUrl('https://forgejo.example.com:8443/owner/repo.git');
+
+      // Port is included in the host part
+      expect(result).toEqual({
+        url: 'https://forgejo.example.com:8443',
+        owner: 'owner',
+        repo: 'repo',
+      });
+    });
+
+    it('should return null for URL with only host', () => {
+      const result = parseGitUrl('https://forgejo.example.com');
+
+      expect(result).toBeNull();
+    });
+
+    it('should return null for URL with only owner (no repo)', () => {
+      const result = parseGitUrl('https://forgejo.example.com/owner');
+
+      expect(result).toBeNull();
+    });
+
+    it('should return null for malformed SSH URL missing colon', () => {
+      const result = parseGitUrl('git@forgejo.example.com/owner/repo.git');
+
+      expect(result).toBeNull();
+    });
+
+    it('should return null for SSH URL with invalid format', () => {
+      const result = parseGitUrl('git@forgejo.example.com:owner');
+
+      expect(result).toBeNull();
+    });
+
+    it('should handle SSH protocol URL without port', () => {
+      const result = parseGitUrl('ssh://git@forgejo.example.com/owner/repo');
+
+      expect(result).toEqual({
+        url: 'https://forgejo.example.com',
+        owner: 'owner',
+        repo: 'repo',
+      });
+    });
+
+    it('should return null for file:// protocol', () => {
+      const result = parseGitUrl('file:///path/to/repo.git');
+
+      expect(result).toBeNull();
+    });
+
+    it('should return null for git:// protocol', () => {
+      const result = parseGitUrl('git://forgejo.example.com/owner/repo.git');
+
+      expect(result).toBeNull();
+    });
+  });
 });

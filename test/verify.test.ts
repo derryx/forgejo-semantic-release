@@ -250,4 +250,96 @@ describe('verifyConditions', () => {
     });
     expect(context.forgejoClient).toBeDefined();
   });
+
+  it('should handle auth error with missing response object', async () => {
+    const pool = getMockPool(baseUrl);
+    // Simulate a network error without response object
+    pool.intercept({ path: apiPath('/user'), method: 'GET' }).replyWithError(new Error('Network error'));
+
+    const context = createMockContext();
+
+    let thrownError: Error | undefined;
+    try {
+      await verifyConditions(
+        {
+          forgejoUrl: 'https://forgejo.example.com',
+          forgejoToken: 'test-token-123',
+        },
+        context
+      );
+    } catch (error) {
+      thrownError = error as Error;
+    }
+
+    expect(thrownError).toBeDefined();
+    // Error should include fallback values (0 and 'Unknown error')
+    expect(thrownError?.message).toContain('Invalid Forgejo token');
+  });
+
+  it('should re-throw non-404 errors when fetching repository', async () => {
+    const pool = getMockPool(baseUrl);
+    pool.intercept({ path: apiPath('/user'), method: 'GET' }).reply(200, mockResponses.user);
+    pool
+      .intercept({ path: apiPath('/repos/owner/repo'), method: 'GET' })
+      .reply(500, { message: 'Internal Server Error' });
+
+    const context = createMockContext();
+
+    let thrownError: Error | undefined;
+    try {
+      await verifyConditions(
+        {
+          forgejoUrl: 'https://forgejo.example.com',
+          forgejoToken: 'test-token-123',
+        },
+        context
+      );
+    } catch (error) {
+      thrownError = error as Error;
+    }
+
+    expect(thrownError).toBeDefined();
+    // Should be the raw HTTP error, not ENOREPO
+    expect(thrownError?.message).toContain('500');
+  });
+
+  it('should verify repository and confirm push permission message', async () => {
+    const pool = getMockPool(baseUrl);
+    pool.intercept({ path: apiPath('/user'), method: 'GET' }).reply(200, mockResponses.user);
+    pool
+      .intercept({ path: apiPath('/repos/owner/repo'), method: 'GET' })
+      .reply(200, mockResponses.repository);
+
+    const context = createMockContext();
+
+    await verifyConditions(
+      {
+        forgejoUrl: 'https://forgejo.example.com',
+        forgejoToken: 'test-token-123',
+      },
+      context
+    );
+
+    expect(context.logger.log).toHaveBeenCalledWith('Repository owner/repo verified');
+  });
+
+  it('should log verifying message at start', async () => {
+    const pool = getMockPool(baseUrl);
+    pool.intercept({ path: apiPath('/user'), method: 'GET' }).reply(200, mockResponses.user);
+    pool
+      .intercept({ path: apiPath('/repos/owner/repo'), method: 'GET' })
+      .reply(200, mockResponses.repository);
+
+    const context = createMockContext();
+
+    await verifyConditions(
+      {
+        forgejoUrl: 'https://forgejo.example.com',
+        forgejoToken: 'test-token-123',
+      },
+      context
+    );
+
+    expect(context.logger.log).toHaveBeenCalledWith('Verifying Forgejo release conditions...');
+  });
 });

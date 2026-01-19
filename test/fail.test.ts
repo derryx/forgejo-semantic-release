@@ -243,4 +243,102 @@ describe('fail', () => {
       expect.stringContaining('Created failure issue #999')
     );
   });
+
+  it('should handle undefined commits array', async () => {
+    const pool = getMockPool(baseUrl);
+
+    pool
+      .intercept({
+        path: (path) => path.startsWith(apiPath('/repos/owner/repo/issues')),
+        method: 'GET',
+      })
+      .reply(200, []);
+
+    pool
+      .intercept({ path: apiPath('/repos/owner/repo/issues'), method: 'POST' })
+      .reply(201, mockResponses.failureIssue);
+
+    const config = createMockConfig();
+    const context = createMockContext({
+      forgejoConfig: config,
+      forgejoClient: new ForgejoApiClient(config),
+      errors: [new Error('Release failed')],
+      commits: undefined as unknown as [],
+    });
+
+    await fail({}, context);
+
+    expect(context.logger.log).toHaveBeenCalledWith(
+      expect.stringContaining('Created failure issue #999')
+    );
+  });
+
+  it('should handle undefined errors array', async () => {
+    const pool = getMockPool(baseUrl);
+
+    pool
+      .intercept({
+        path: (path) => path.startsWith(apiPath('/repos/owner/repo/issues')),
+        method: 'GET',
+      })
+      .reply(200, []);
+
+    pool
+      .intercept({ path: apiPath('/repos/owner/repo/issues'), method: 'POST' })
+      .reply(201, mockResponses.failureIssue);
+
+    const config = createMockConfig();
+    const context = createMockContext({
+      forgejoConfig: config,
+      forgejoClient: new ForgejoApiClient(config),
+      errors: undefined as unknown as Error[],
+    });
+
+    await fail({}, context);
+
+    expect(context.logger.log).toHaveBeenCalledWith(
+      expect.stringContaining('Created failure issue #999')
+    );
+  });
+
+  it('should log creating failure issue message', async () => {
+    const pool = getMockPool(baseUrl);
+
+    pool
+      .intercept({
+        path: (path) => path.startsWith(apiPath('/repos/owner/repo/issues')),
+        method: 'GET',
+      })
+      .reply(200, []);
+
+    pool
+      .intercept({ path: apiPath('/repos/owner/repo/issues'), method: 'POST' })
+      .reply(201, mockResponses.failureIssue);
+
+    const config = createMockConfig();
+    const context = createMockContext({
+      forgejoConfig: config,
+      forgejoClient: new ForgejoApiClient(config),
+      errors: [new Error('Release failed')],
+    });
+
+    await fail({}, context);
+
+    expect(context.logger.log).toHaveBeenCalledWith('Creating failure issue...');
+  });
+
+  it('should warn and return if forgejoUrl is missing', async () => {
+    const config = createMockConfig();
+    config.forgejoUrl = '';
+
+    const context = createMockContext({
+      forgejoConfig: config,
+    });
+
+    await fail({}, context);
+
+    expect(context.logger.warn).toHaveBeenCalledWith(
+      'Cannot create failure issue: missing Forgejo configuration'
+    );
+  });
 });

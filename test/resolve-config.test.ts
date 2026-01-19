@@ -297,6 +297,70 @@ describe('resolveConfig', () => {
       expect(config.releasedLabels).toBe(false);
     });
   });
+
+  describe('success comment condition', () => {
+    it('should be false by default when not provided', () => {
+      const config = resolveConfig({ forgejoUrl: 'https://forgejo.example.com' }, {}, '/tmp');
+      expect(config.successCommentCondition).toBe(false);
+    });
+
+    it('should use custom success comment condition', () => {
+      const config = resolveConfig(
+        {
+          forgejoUrl: 'https://forgejo.example.com',
+          successCommentCondition: "<%= issue.state === 'closed' %>",
+        },
+        {},
+        '/tmp'
+      );
+      expect(config.successCommentCondition).toBe("<%= issue.state === 'closed' %>");
+    });
+
+    it('should allow explicitly disabling success comment condition with false', () => {
+      const config = resolveConfig(
+        {
+          forgejoUrl: 'https://forgejo.example.com',
+          successCommentCondition: false,
+        },
+        {},
+        '/tmp'
+      );
+      expect(config.successCommentCondition).toBe(false);
+    });
+
+    it('should NOT use empty string as condition (falsy but not false)', () => {
+      const config = resolveConfig(
+        {
+          forgejoUrl: 'https://forgejo.example.com',
+          // @ts-expect-error - testing edge case
+          successCommentCondition: '',
+        },
+        {},
+        '/tmp'
+      );
+      // Empty string is falsy, so defaults to false
+      expect(config.successCommentCondition).toBe(false);
+    });
+  });
+
+  describe('proxy configuration', () => {
+    it('should be undefined by default', () => {
+      const config = resolveConfig({ forgejoUrl: 'https://forgejo.example.com' }, {}, '/tmp');
+      expect(config.proxy).toBeUndefined();
+    });
+
+    it('should use proxy from config', () => {
+      const config = resolveConfig(
+        {
+          forgejoUrl: 'https://forgejo.example.com',
+          proxy: 'http://proxy.example.com:8080',
+        },
+        {},
+        '/tmp'
+      );
+      expect(config.proxy).toBe('http://proxy.example.com:8080');
+    });
+  });
 });
 
 describe('validateConfig', () => {
