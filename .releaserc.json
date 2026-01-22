@@ -10,7 +10,7 @@
       }
     ],
     [
-      "./dist/index.cjs",
+      "./dist/index.mjs",
       {
         "assets": []
       }
