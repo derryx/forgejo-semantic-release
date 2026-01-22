@@ -10,24 +10,12 @@ jobs:
   build:
     runs-on: docker
     container:
-      image: node:20-alpine
+      image: node:24-alpine
     steps:
       - name: Checkout
         uses: https://forgejo.peuss.de/actions/checkout@v5
         with:
           fetch-depth: 0
-      - name: setup node
-        uses: https://forgejo.peuss.de/actions/setup-node@v6
-        with:
-          node-version: 24
-      #      - name: Cache npm dependencies
-      #        uses: https://forgejo.peuss.de/actions/cache@v4
-      #        with:
-      #          path: ~/.npm
-      #          key: ${{ runner.os }}-npm-${{ hashFiles('package-lock.json') }}
-      #          restore-keys: |
-      #            ${{ runner.os }}-npm-
-
       - name: Install dependencies
         run: npm ci
 
@@ -42,7 +30,7 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: docker
     container:
-      image: node:20-alpine
+      image: node:24-alpine
     steps:
       - name: Install git
         run: apk add --no-cache git
@@ -52,10 +40,6 @@ jobs:
         with:
           fetch-depth: 0
           token: ${{ secrets.FORGEJO_TOKEN }}
-      - name: setup node
-        uses: https://forgejo.peuss.de/actions/setup-node@v6
-        with:
-          node-version: 24
       - name: Configure git
         run: |
           git config --global user.email "actions@forgejo.peuss.de"
