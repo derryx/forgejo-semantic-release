@@ -193,7 +193,7 @@ describe('publish', () => {
         path: apiPath('/repos/owner/repo/releases'),
         method: 'POST',
         body: (body) => {
-          capturedBody = JSON.parse(body as string);
+          capturedBody = JSON.parse(body);
           return true;
         },
       })
@@ -341,7 +341,7 @@ describe('publish', () => {
         path: apiPath('/repos/owner/repo/releases'),
         method: 'POST',
         body: (body) => {
-          capturedBody = JSON.parse(body as string);
+          capturedBody = JSON.parse(body);
           return true;
         },
       })
@@ -372,7 +372,7 @@ describe('publish', () => {
         path: apiPath('/repos/owner/repo/releases'),
         method: 'POST',
         body: (body) => {
-          capturedBody = JSON.parse(body as string);
+          capturedBody = JSON.parse(body);
           return true;
         },
       })

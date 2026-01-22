@@ -16,14 +16,82 @@ jobs:
         uses: https://forgejo.peuss.de/actions/checkout@v5
         with:
           fetch-depth: 0
+
+      - name: Install system dependencies
+        run: apk add --no-cache curl jq
+
       - name: Install dependencies
         run: npm ci
 
       - name: Build
+        id: build
         run: npm run build
 
+      - name: Lint
+        id: lint
+        run: npm run lint 2>&1 | tee lint-output.txt
+        continue-on-error: true
+
       - name: Run tests
-        run: npm test
+        id: tests
+        run: npm test 2>&1 | tee test-output.txt
+        continue-on-error: true
+
+      - name: Post PR Comment
+        if: github.event_name == 'pull_request'
+        env:
+          FORGEJO_TOKEN: ${{ secrets.FORGEJO_TOKEN }}
+        run: |
+          # Determine status emoji
+          if [ "${{ steps.build.outcome }}" = "success" ] && [ "${{ steps.lint.outcome }}" = "success" ] && [ "${{ steps.tests.outcome }}" = "success" ]; then
+            STATUS="✅ All checks passed"
+          else
+            STATUS="❌ Some checks failed"
+          fi
+
+          # Build comment body
+          COMMENT="## CI Status: ${STATUS}
+
+          ### Build
+          $( [ "${{ steps.build.outcome }}" = "success" ] && echo "✅ Passed" || echo "❌ Failed" )
+
+          ### Lint
+          $( [ "${{ steps.lint.outcome }}" = "success" ] && echo "✅ Passed" || echo "❌ Failed" )
+
+          <details>
+          <summary>Lint Output</summary>
+
+          \`\`\`
+          $(cat lint-output.txt 2>/dev/null || echo "No output")
+          \`\`\`
+
+          </details>
+
+          ### Tests
+          $( [ "${{ steps.tests.outcome }}" = "success" ] && echo "✅ Passed" || echo "❌ Failed" )
+
+          <details>
+          <summary>Test Output</summary>
+
+          \`\`\`
+          $(cat test-output.txt 2>/dev/null || echo "No output")
+          \`\`\`
+
+          </details>
+
+          ---
+          *Posted by CI at $(date -u '+%Y-%m-%d %H:%M:%S UTC')*"
+
+          # Post comment to PR via Forgejo API
+          curl -s -X POST \
+            -H "Authorization: token ${FORGEJO_TOKEN}" \
+            -H "Content-Type: application/json" \
+            -d "$(jq -n --arg body "$COMMENT" '{body: $body}')" \
+            "https://forgejo.peuss.de/api/v1/repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments"
+
+      - name: Fail if checks failed
+        if: steps.build.outcome == 'failure' || steps.lint.outcome == 'failure' || steps.tests.outcome == 'failure'
+        run: exit 1
 
   release:
     needs: build

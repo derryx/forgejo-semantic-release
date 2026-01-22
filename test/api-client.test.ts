@@ -439,7 +439,7 @@ describe('ForgejoApiClient', () => {
           path: apiPath('/repos/owner/repo/issues'),
           method: 'POST',
           headers: (headers) => {
-            capturedHeaders = headers as Record<string, string>;
+            capturedHeaders = headers;
             return true;
           },
         })
@@ -459,7 +459,7 @@ describe('ForgejoApiClient', () => {
           path: apiPath('/user'),
           method: 'GET',
           headers: (headers) => {
-            capturedHeaders = headers as Record<string, string>;
+            capturedHeaders = headers;
             return true;
           },
         })
@@ -480,7 +480,7 @@ describe('ForgejoApiClient', () => {
           path: apiPath('/user'),
           method: 'GET',
           headers: (headers) => {
-            capturedHeaders = headers as Record<string, string>;
+            capturedHeaders = headers;
             return true;
           },
         })
@@ -518,7 +518,7 @@ describe('ForgejoApiClient', () => {
           path: (path) => path.startsWith(apiPath('/repos/owner/repo/releases/1/assets')),
           method: 'POST',
           headers: (headers) => {
-            const contentType = (headers as Record<string, string>)['content-type'];
+            const contentType = (headers)['content-type'];
             if (contentType) {
               capturedContentType = contentType;
             }
