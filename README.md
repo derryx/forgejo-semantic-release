@@ -1,6 +1,6 @@
 # forgejo-semantic-release
 
-[![npm version](https://forgejo.peuss.de/api/packages/thomas/npm/forgejo-semantic-release/badges/version)](https://forgejo.peuss.de/thomas/-/packages/npm/forgejo-semantic-release)
+[![npm version](https://forgejo.peuss.de/api/packages/thomas/npm/forgejo-semantic-release/badges/version)](https://forgejo.peuss.de/thomas/-/packages)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 A [semantic-release](https://github.com/semantic-release/semantic-release) plugin for [Forgejo](https://forgejo.org/) (and [Gitea](https://gitea.io/)).
