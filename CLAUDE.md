@@ -18,12 +18,14 @@ npm run format         # Format with Prettier
 ## Architecture
 
 **Plugin Hooks** (in execution order):
+
 1. `verifyConditions` - Validates config, tests API auth, stores client in context
 2. `publish` - Creates release, uploads assets, returns release URL
 3. `success` - Comments on resolved issues, adds labels, closes failure issues
 4. `fail` - Creates/updates failure issue with error details
 
 **Key Files:**
+
 - `src/types.ts` - All TypeScript interfaces
 - `src/api-client.ts` - ForgejoApiClient wrapping fetch API
 - `src/resolve-config.ts` - Configuration resolution and validation

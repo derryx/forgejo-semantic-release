@@ -518,7 +518,7 @@ describe('ForgejoApiClient', () => {
           path: (path) => path.startsWith(apiPath('/repos/owner/repo/releases/1/assets')),
           method: 'POST',
           headers: (headers) => {
-            const contentType = (headers)['content-type'];
+            const contentType = headers['content-type'];
             if (contentType) {
               capturedContentType = contentType;
             }

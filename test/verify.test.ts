@@ -254,7 +254,9 @@ describe('verifyConditions', () => {
   it('should handle auth error with missing response object', async () => {
     const pool = getMockPool(baseUrl);
     // Simulate a network error without response object
-    pool.intercept({ path: apiPath('/user'), method: 'GET' }).replyWithError(new Error('Network error'));
+    pool
+      .intercept({ path: apiPath('/user'), method: 'GET' })
+      .replyWithError(new Error('Network error'));
 
     const context = createMockContext();
 

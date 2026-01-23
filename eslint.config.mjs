@@ -15,7 +15,11 @@ export default tseslint.config(
   prettier,
   {
     files: ['**/*.ts'],
-    extends: [...tseslint.configs.recommendedTypeChecked, importX.flatConfigs.recommended, importX.flatConfigs.typescript],
+    extends: [
+      ...tseslint.configs.recommendedTypeChecked,
+      importX.flatConfigs.recommended,
+      importX.flatConfigs.typescript,
+    ],
     languageOptions: {
       ecmaVersion: 'latest',
       sourceType: 'module',

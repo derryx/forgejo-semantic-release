@@ -759,9 +759,7 @@ describe('success', () => {
 
     // Should not log "Commented on issue" or "Posted X success comment(s)"
     expect(context.logger.log).not.toHaveBeenCalledWith('Commented on issue #123');
-    expect(context.logger.log).not.toHaveBeenCalledWith(
-      expect.stringContaining('Posted')
-    );
+    expect(context.logger.log).not.toHaveBeenCalledWith(expect.stringContaining('Posted'));
   });
 
   it('should respect successCommentCondition returning false and not post comment', async () => {
