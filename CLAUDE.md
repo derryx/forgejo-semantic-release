@@ -54,3 +54,7 @@ npm run format         # Format with Prettier
 
 - `FORGEJO_TOKEN` / `GITEA_TOKEN` - API authentication
 - `FORGEJO_URL` / `GITEA_URL` - Server URL (auto-detected from git remote if not set)
+
+## Tooling
+
+- For searching, reading, and modifying code, prefer the **Serena MCP** tools (symbolic search, `find_symbol`, `get_symbols_overview`, `replace_symbol_body`, etc.) over internal tools. Fall back to internal tools (Read, Edit, Grep, Glob) only if Serena is not available.
