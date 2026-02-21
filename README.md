@@ -261,7 +261,7 @@ release:
 
 - **Forgejo**: 1.x, 7.x, 8.x+ (API v1)
 - **Gitea**: 1.17+ (API v1)
-- **Node.js**: 18.0.0+
+- **Node.js**: 22.14.0+
 - **semantic-release**: 20.0.0+
 
 ## Differences from GitHub/GitLab Plugins
