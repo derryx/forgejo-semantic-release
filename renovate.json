@@ -4,11 +4,13 @@
   "packageRules": [
     {
       "matchDepTypes": ["devDependencies"],
-      "groupName": "dev dependencies"
+      "groupName": "dev dependencies",
+      "automerge": true
     },
     {
       "matchDepTypes": ["dependencies"],
-      "groupName": "production dependencies"
+      "groupName": "production dependencies",
+      "automerge": true
     }
   ]
 }
