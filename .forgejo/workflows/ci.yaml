@@ -13,7 +13,7 @@ jobs:
       image: node:24-alpine
     steps:
       - name: Checkout
-        uses: https://forgejo.peuss.de/actions/checkout@v5
+        uses: https://forgejo.peuss.de/actions/checkout@v6
         with:
           fetch-depth: 0
 
@@ -104,7 +104,7 @@ jobs:
         run: apk add --no-cache git
 
       - name: Checkout
-        uses: https://forgejo.peuss.de/actions/checkout@v5
+        uses: https://forgejo.peuss.de/actions/checkout@v6
         with:
           fetch-depth: 0
           token: ${{ secrets.FORGEJO_TOKEN }}
