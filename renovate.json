@@ -8,8 +8,13 @@
       "automerge": true
     },
     {
-      "matchDepTypes": ["dependencies"],
+      "matchDepTypes": ["dependencies", "peerDependencies"],
       "groupName": "production dependencies",
+      "automerge": true
+    },
+    {
+      "matchPackageNames": ["@types/**"],
+      "groupName": "type definitions",
       "automerge": true
     }
   ]
