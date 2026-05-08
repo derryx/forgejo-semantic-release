@@ -21,7 +21,7 @@ describe('getError', () => {
 
   it('should handle unknown error code gracefully', () => {
     // Cast to bypass TypeScript type checking for testing purposes
-    const error = getError('UNKNOWN_ERROR_CODE' as Parameters<typeof getError>[0]);
+    const error = getError('UNKNOWN_ERROR_CODE');
 
     expect(error.message).toBe('Unknown error code: UNKNOWN_ERROR_CODE');
     expect(error.code).toBe('UNKNOWN_ERROR_CODE');

@@ -91,7 +91,7 @@ describe('evaluateCondition', () => {
       branch: { name: 'main', prerelease: false },
     };
 
-    const result = evaluateCondition('<%= branch.name === "main" %>', context as never);
+    const result = evaluateCondition('<%= branch.name === "main" %>', context);
 
     expect(result).toBe(true);
   });
