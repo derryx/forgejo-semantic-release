@@ -20,7 +20,7 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "test:mutation": "stryker run",
-    "lint": "eslint src test .forgejo",
+    "lint": "eslint .",
     "format": "prettier --write .",
     "prepublishOnly": "npm run build",
     "release:dry": "semantic-release --dry-run",
