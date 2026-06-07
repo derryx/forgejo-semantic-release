@@ -8,7 +8,19 @@ import globals from 'globals';
 
 export default tseslint.config(
   {
-    ignores: ['dist/', 'node_modules/', '**/*.js', '**/*.cjs', '**/*.mjs'],
+    ignores: [
+      'dist/',
+      'node_modules/',
+      'coverage/',
+      'reports/',
+      '.stryker-tmp/',
+      '.idea/',
+      '.serena/',
+      '.claude/',
+      '**/*.js',
+      '**/*.cjs',
+      '**/*.mjs',
+    ],
   },
   eslint.configs.recommended,
   ...yml.configs['flat/recommended'],
