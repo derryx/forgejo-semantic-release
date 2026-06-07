@@ -30,12 +30,10 @@ jobs:
       - name: Lint
         id: lint
         run: npm run lint 2>&1 | tee lint-output.txt
-        continue-on-error: true
 
       - name: Run tests
         id: tests
         run: npm test 2>&1 | tee test-output.txt
-        continue-on-error: true
 
       - name: Post PR Comment
         if: github.event_name == 'pull_request'
