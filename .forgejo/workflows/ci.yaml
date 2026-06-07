@@ -18,7 +18,7 @@ jobs:
           fetch-depth: 0
 
       - name: Install system dependencies
-        run: apk add --no-cache curl jq
+        run: apk add --no-cache curl jq bash
 
       - name: Install dependencies
         run: npm ci
@@ -29,11 +29,17 @@ jobs:
 
       - name: Lint
         id: lint
-        run: npm run lint 2>&1 | tee lint-output.txt
+        shell: bash
+        run: |
+          set -o pipefail
+          npm run lint 2>&1 | tee lint-output.txt
 
       - name: Run tests
         id: tests
-        run: npm test 2>&1 | tee test-output.txt
+        shell: bash
+        run: |
+          set -o pipefail
+          npm test 2>&1 | tee test-output.txt
 
       - name: Post PR Comment
         if: github.event_name == 'pull_request'
