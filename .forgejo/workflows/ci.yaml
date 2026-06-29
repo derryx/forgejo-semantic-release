@@ -8,7 +8,7 @@ on:
 
 jobs:
   build:
-    runs-on: docker
+    runs-on: codeberg-medium
     container:
       image: node:24-alpine
     steps:
