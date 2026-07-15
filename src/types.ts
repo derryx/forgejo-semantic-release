@@ -1,4 +1,8 @@
 import type { ForgejoApiClient } from './api-client.js';
+import type { components } from './generated/forgejo-api.js';
+
+/** Forgejo API schemas, generated from the OpenAPI spec (see `npm run codegen`) */
+type Schemas = components['schemas'];
 
 /**
  * Commit object from semantic-release
@@ -155,109 +159,19 @@ export interface ResolvedConfig {
 }
 
 /**
- * Forgejo API Release object
+ * Forgejo API object shapes, aliased from the generated OpenAPI types.
+ *
+ * NOTE: every field on these schemas is optional — the Forgejo spec marks no
+ * property as `required`, so consumers must guard fields that may be absent.
  */
-export interface ForgejoRelease {
-  id: number;
-  tag_name: string;
-  target_commitish: string;
-  name: string;
-  body: string;
-  url: string;
-  html_url: string;
-  tarball_url: string;
-  zipball_url: string;
-  draft: boolean;
-  prerelease: boolean;
-  created_at: string;
-  published_at: string;
-  author: ForgejoUser;
-  assets: ForgejoAsset[];
-}
-
-/**
- * Forgejo API User object
- */
-export interface ForgejoUser {
-  id: number;
-  login: string;
-  full_name: string;
-  email: string;
-  avatar_url: string;
-}
-
-/**
- * Forgejo API Asset object
- */
-export interface ForgejoAsset {
-  id: number;
-  name: string;
-  size: number;
-  download_count: number;
-  created_at: string;
-  uuid: string;
-  browser_download_url: string;
-}
-
-/**
- * Forgejo API Issue object
- */
-export interface ForgejoIssue {
-  id: number;
-  number: number;
-  url: string;
-  html_url: string;
-  title: string;
-  body: string;
-  labels: ForgejoLabel[];
-  state: 'open' | 'closed';
-  pull_request?: {
-    merged: boolean;
-    merged_at: string | null;
-  };
-  user: ForgejoUser;
-}
-
-/**
- * Forgejo API Label object
- */
-export interface ForgejoLabel {
-  id: number;
-  name: string;
-  color: string;
-  description: string;
-}
-
-/**
- * Forgejo API Comment object
- */
-export interface ForgejoComment {
-  id: number;
-  html_url: string;
-  body: string;
-  user: ForgejoUser;
-  created_at: string;
-  updated_at: string;
-}
-
-/**
- * Forgejo API Repository object
- */
-export interface ForgejoRepository {
-  id: number;
-  owner: ForgejoUser;
-  name: string;
-  full_name: string;
-  description: string;
-  html_url: string;
-  clone_url: string;
-  ssh_url: string;
-  permissions?: {
-    admin: boolean;
-    push: boolean;
-    pull: boolean;
-  };
-}
+export type ForgejoRelease = Schemas['Release'];
+export type ForgejoUser = Schemas['User'];
+/** Release assets are `Attachment` in the Forgejo/Gitea spec */
+export type ForgejoAsset = Schemas['Attachment'];
+export type ForgejoIssue = Schemas['Issue'];
+export type ForgejoLabel = Schemas['Label'];
+export type ForgejoComment = Schemas['Comment'];
+export type ForgejoRepository = Schemas['Repository'];
 
 /**
  * Repository information extracted from git remote
@@ -269,26 +183,14 @@ export interface RepositoryInfo {
 }
 
 /**
- * Options for creating a release
+ * Options for creating a release (aliased from the generated OpenAPI types)
  */
-export interface CreateReleaseOptions {
-  tag_name: string;
-  target_commitish: string;
-  name: string;
-  body: string;
-  draft: boolean;
-  prerelease: boolean;
-}
+export type CreateReleaseOptions = Schemas['CreateReleaseOption'];
 
 /**
- * Options for creating an issue
+ * Options for creating an issue (aliased from the generated OpenAPI types)
  */
-export interface CreateIssueOptions {
-  title: string;
-  body: string;
-  labels?: string[];
-  assignees?: string[];
-}
+export type CreateIssueOptions = Schemas['CreateIssueOption'];
 
 /**
  * Plugin context from semantic-release with plugin state

@@ -61,7 +61,7 @@ export async function fail(
     // Search for existing failure issue
     const existingIssue = await client.findIssueByTitle(config.failTitle, 'open');
 
-    if (existingIssue) {
+    if (existingIssue?.number !== undefined) {
       // Add comment to existing issue
       await client.createIssueComment(existingIssue.number, failureBody);
       logger.log(`Updated existing failure issue #${existingIssue.number}`);
@@ -71,7 +71,10 @@ export async function fail(
       const issue = await client.createIssue({
         title: config.failTitle,
         body: failureBody,
-        labels: config.labels,
+        // NOTE: Forgejo's create-issue API types `labels` as label IDs (number[]),
+        // but the plugin is configured with label *names*. This cast preserves the
+        // existing runtime behavior; resolving names -> IDs is tracked in TODO.md (#14).
+        labels: config.labels as unknown as number[],
         assignees: config.assignees,
       });
       logger.log(`Created failure issue #${issue.number}: ${issue.html_url}`);

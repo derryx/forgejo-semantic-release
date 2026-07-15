@@ -5,3 +5,5 @@ dist
 coverage
 .stryker-tmp
 reports
+src/generated
+spec

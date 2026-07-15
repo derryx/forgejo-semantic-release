@@ -53,6 +53,15 @@ export async function publish(
     });
   }
 
+  // A successful create must carry an id and URL; guard so the downstream
+  // asset upload and the returned URL are never silently undefined.
+  if (release.id === undefined || release.html_url === undefined) {
+    throw getError('ERELEASECREATION', {
+      tag: gitTag,
+      error: 'Forgejo API returned a release without an id or html_url',
+    });
+  }
+
   // Store release for success hook
   context.forgejoRelease = release;
 
