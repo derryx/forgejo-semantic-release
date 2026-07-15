@@ -53,9 +53,10 @@ async function hasExistingReleaseComment(
   try {
     const comments = await client.getIssueComments(issueNumber);
     // Check if any comment mentions this version
-    return comments.some(
-      (comment) => comment.body.includes(version) && comment.body.includes('semantic-release')
-    );
+    return comments.some((comment) => {
+      const body = comment.body ?? '';
+      return body.includes(version) && body.includes('semantic-release');
+    });
   } catch {
     return false;
   }
@@ -71,7 +72,7 @@ async function closeFailureIssues(
 ): Promise<void> {
   try {
     const existingIssue = await client.findIssueByTitle(failTitle, 'open');
-    if (existingIssue) {
+    if (existingIssue?.number !== undefined) {
       await client.closeIssue(existingIssue.number);
       logger.log(`Closed failure issue #${existingIssue.number}`);
     }

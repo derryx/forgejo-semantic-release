@@ -17,6 +17,7 @@ export default tseslint.config(
       '.idea/',
       '.serena/',
       '.claude/',
+      'src/generated/',
       '**/*.js',
       '**/*.cjs',
       '**/*.mjs',

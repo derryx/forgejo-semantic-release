@@ -16,6 +16,8 @@
   ],
   "scripts": {
     "build": "tsdown src/index.ts --format esm --dts --clean",
+    "codegen": "npx --yes swagger2openapi@7 spec/forgejo-swagger.json -o spec/forgejo-openapi.json && npx --yes openapi-typescript@7 spec/forgejo-openapi.json -o src/generated/forgejo-api.ts",
+    "codegen:fetch": "curl -sSL https://forgejo.peuss.de/swagger.v1.json -o spec/forgejo-swagger.json",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
