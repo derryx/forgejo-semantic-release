@@ -16,6 +16,10 @@
       "matchPackageNames": ["@types/**"],
       "groupName": "type definitions",
       "automerge": true
+    },
+    {
+      "matchUpdateTypes": ["major"],
+      "automerge": false
     }
   ]
 }
