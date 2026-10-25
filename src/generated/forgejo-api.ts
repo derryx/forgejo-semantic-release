@@ -4,6 +4,26 @@
  */
 
 export interface paths {
+    "/actions/run": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get a workflow run associated with a token
+         * @description The automatic actions token must be used as the authentication mechanism (<code>Authorization: Bearer $&#x7b;&#x7b; forgejo.token &#x7d;&#x7d;</code>); other types of tokens cannot be used. The token is associated with the job, which must be still running for the request to this endpoint to succeed.
+         */
+        get: operations["getActionsRun"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/activitypub/actor": {
         parameters: {
             query?: never;
@@ -758,6 +778,41 @@ export interface paths {
         /** Create a repository on behalf of a user */
         post: operations["adminCreateRepo"];
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/users/{username}/tokens": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List the specified user's access tokens */
+        get: operations["adminListUserAccessTokens"];
+        put?: never;
+        /** Create an access token for the specified user */
+        post: operations["adminCreateUserAccessToken"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/users/{username}/tokens/{token}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete an access token for the specified user */
+        delete: operations["adminDeleteUserAccessToken"];
         options?: never;
         head?: never;
         patch?: never;
@@ -1731,6 +1786,122 @@ export interface paths {
         patch: operations["repoEdit"];
         trace?: never;
     };
+    "/repos/{owner}/{repo}/actions/artifacts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List a repository's artifacts */
+        get: operations["ListActionArtifacts"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/repos/{owner}/{repo}/actions/artifacts/{artifact_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get an artifact by ID */
+        get: operations["GetActionArtifact"];
+        put?: never;
+        post?: never;
+        /**
+         * Mark an artifact for deletion
+         * @description Marks the artifact for deletion. Storage space will be reclaimed
+         *     asynchronously by a background job.
+         */
+        delete: operations["DeleteActionArtifact"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/repos/{owner}/{repo}/actions/artifacts/{artifact_id}/zip": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Download an artifact */
+        get: operations["DownloadActionArtifact"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/repos/{owner}/{repo}/actions/jobs/{job_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get a single workflow run job, including its step list
+         * @description Returns the workflow job plus the ordered list of steps that make up its execution. The `number` field on each step is the value accepted by the `?step=` filter on the job-logs endpoint; `number=0` is always "Set up job" and the last index is always "Complete job", with the workflow's real steps in between. A job that has never been picked up by a runner returns the job metadata with `steps` omitted.
+         */
+        get: operations["repoGetActionJob"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/repos/{owner}/{repo}/actions/jobs/{job_id}/logs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Download the plaintext logs of an action job
+         * @description Returns the plaintext log for the job. By default the log for the most recent attempt is returned (ActionRunJob.TaskID tracks the latest task). Pass `?attempt=N` to fetch the log for a specific historical attempt; the value matches the `attempt` field returned by the job listing endpoints. Pass `?step=N` to narrow to a single step (using the `number` field from `GET /actions/jobs/{job_id}`), `?q=` to substring-filter lines, and `?format=ndjson` for NDJSON output (one `{time, content}` object per line). When `q` or `format=ndjson` is set the response drops `Accept-Ranges` and does not support `Range:` since the total length isn't known until the scan finishes.
+         */
+        get: operations["repoGetActionJobLogs"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/repos/{owner}/{repo}/actions/jobs/{job_id}/rerun": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Rerun a completed workflow job and its dependent jobs
+         * @description Rerun a particular workflow job and all jobs that depend on it. The workflow job must have completed (succeeded, failed, cancelled or skipped) for the operation to succeed. Otherwise, an error is returned.
+         */
+        post: operations["repoRerunActionJob"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/repos/{owner}/{repo}/actions/runners": {
         parameters: {
             query?: never;
@@ -1833,6 +2004,101 @@ export interface paths {
         get: operations["ActionRun"];
         put?: never;
         post?: never;
+        /**
+         * Delete a completed workflow run.
+         * @description Remove a particular workflow run. The workflow run must have completed (succeeded, failed, cancelled) for the operation to succeed. Otherwise, an error is returned.
+         */
+        delete: operations["DeleteActionRun"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/repos/{owner}/{repo}/actions/runs/{run_id}/artifacts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List artifacts of a workflow run */
+        get: operations["ListActionRunArtifacts"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/repos/{owner}/{repo}/actions/runs/{run_id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Cancel a pending or running workflow run.
+         * @description Cancel a particular workflow run. Pending or running jobs of the run are cancelled. A run that has already finished, whether cancelled, failed, skipped or succeeded, is left unchanged. In both cases the endpoint responds with HTTP 204.
+         */
+        post: operations["CancelActionRun"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/repos/{owner}/{repo}/actions/runs/{run_id}/jobs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List jobs of a workflow run */
+        get: operations["ListActionRunJobs"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/repos/{owner}/{repo}/actions/runs/{run_id}/logs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Download a ZIP of plaintext logs for every job in an action run */
+        get: operations["repoGetActionRunLogs"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/repos/{owner}/{repo}/actions/runs/{run_id}/rerun": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Rerun a finished (succeeded, failed, cancelled or skipped) workflow run.
+         * @description Rerun a particular workflow run. The workflow run must have completed (succeeded, failed, cancelled or skipped) for the operation to succeed. Otherwise, an error is returned.
+         */
+        post: operations["RerunActionRun"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2982,6 +3248,24 @@ export interface paths {
         post?: never;
         /** Remove a label from an issue */
         delete: operations["issueRemoveLabel"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/repos/{owner}/{repo}/issues/{index}/lock": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Lock an issue */
+        put: operations["lockIssue"];
+        post?: never;
+        /** Unlock an issue */
+        delete: operations["unlockIssue"];
         options?: never;
         head?: never;
         patch?: never;
@@ -4653,6 +4937,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/user/actions/secrets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List actions secrets of the current user */
+        get: operations["userListActionsSecrets"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/user/actions/secrets/{secretname}": {
         parameters: {
             query?: never;
@@ -4703,6 +5004,23 @@ export interface paths {
         post: operations["createUserVariable"];
         /** Delete a user-level variable which is created by current doer */
         delete: operations["deleteUserVariable"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/user/activitypub/follow": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Follow a remote activitypub account */
+        post: operations["userCurrentActivityPubFollow"];
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -5599,8 +5917,13 @@ export interface components {
             message?: string;
             url?: string;
         };
+        APRemoteFollowOption: {
+            target?: string;
+        };
         /** AccessToken represents an API access token. */
         AccessToken: {
+            /** Format: date-time */
+            created_at?: string;
             /** Format: int64 */
             id?: number;
             name?: string;
@@ -5612,6 +5935,36 @@ export interface components {
             scopes?: string[];
             sha1?: string;
             token_last_eight?: string;
+        };
+        /** @description ActionArtifact represents an artifact of a workflow run */
+        ActionArtifact: {
+            /** @description the URL to download the artifact zip archive */
+            archive_download_url?: string;
+            /** Format: date-time */
+            created_at?: string;
+            /** @description whether the artifact has expired */
+            expired?: boolean;
+            /** Format: date-time */
+            expires_at?: string;
+            /**
+             * Format: int64
+             * @description the artifact's ID
+             */
+            id?: number;
+            /** @description the artifact's name */
+            name?: string;
+            /**
+             * Format: int64
+             * @description the ID of the workflow run that produced this artifact
+             */
+            run_id?: number;
+            /**
+             * Format: int64
+             * @description the total size of the artifact in bytes
+             */
+            size_in_bytes?: number;
+            /** Format: date-time */
+            updated_at?: string;
         };
         /** @description ActionRun represents an action run */
         ActionRun: {
@@ -5692,6 +6045,8 @@ export interface components {
             attempt?: number;
             /** @description Opaque identifier that uniquely identifies a single attempt of a job. */
             handle?: string;
+            /** @description HTMLURL is the URL where a user can view the job using their browser. */
+            html_url?: string;
             /**
              * Format: int64
              * @description Identifier of this job.
@@ -5711,15 +6066,59 @@ export interface components {
              * @description the repository id
              */
             repo_id?: number;
+            /**
+             * Format: int64
+             * @description Identifier of the workflow run this job belongs to.
+             */
+            run_id?: number;
             /** @description the action run job labels to run on */
             runs_on?: string[];
             /** @description the action run job status */
             status?: string;
             /**
+             * @description the steps that make up this workflow job's execution, including the
+             *     "Set up job" entry (number=0) and "Complete job" tail. Only populated by
+             *     endpoints that return a single job (e.g. GET /repos/{owner}/{repo}/actions/jobs/{job_id}).
+             */
+            steps?: components["schemas"]["ActionRunJobStep"][];
+            /**
              * Format: int64
              * @description the action run job latest task id
              */
             task_id?: number;
+        };
+        /**
+         * @description ActionRunJobStep is a step in a workflow job's execution. The slice on
+         *     ActionRunJob.Steps always includes a "Set up job" entry at number=0 and a
+         *     "Complete job" entry as the last element; the entries in between are the
+         *     workflow's real steps in declaration order. The Number field is the value
+         *     accepted by the job-logs endpoint's `?step=` filter.
+         */
+        ActionRunJobStep: {
+            /**
+             * @description step name (workflow YAML `name:` for real steps; "Set up job" and
+             *     "Complete job" for the head and tail respectively)
+             */
+            name?: string;
+            /**
+             * Format: int64
+             * @description position in the job's step list. 0 is the "Set up job" entry; the last
+             *     index is the "Complete job" entry; real steps are numbered 1..N in
+             *     declaration order.
+             */
+            number?: number;
+            /**
+             * Format: date-time
+             * @description when the step started
+             */
+            started?: string;
+            /** @description step status (success, failure, running, waiting, skipped, cancelled, ...) */
+            status?: string;
+            /**
+             * Format: date-time
+             * @description when the step stopped
+             */
+            stopped?: string;
         };
         /** @description ActionRunner represents a runner */
         ActionRunner: {
@@ -5909,7 +6308,6 @@ export interface components {
             block_on_official_review_requests?: boolean;
             block_on_outdated_branch?: boolean;
             block_on_rejected_reviews?: boolean;
-            /** @description Deprecated: true */
             branch_name?: string;
             /** Format: date-time */
             created_at?: string;
@@ -5963,6 +6361,8 @@ export interface components {
             dates?: components["schemas"]["CommitDateOptions"];
             /** @description list of file operations */
             files: components["schemas"]["ChangeFileOperation"][];
+            /** @description (optional) will do a force-push if the new branch already exists */
+            force_overwrite_new_branch?: boolean;
             /** @description message (optional) for the commit of this file. if not supplied, a default message will be used */
             message?: string;
             /** @description new_branch (optional) will make a new branch from `branch` before creating the file */
@@ -6091,7 +6491,7 @@ export interface components {
         };
         /**
          * @description CommitStatusState holds the state of a CommitStatus
-         *     It can be "pending", "success", "error", "failure" and "warning"
+         *     It can be "pending", "success", "error", "failure", "warning", or "skipped"
          */
         CommitStatusState: string;
         /** CommitUser contains information of a user in the context of a commit. */
@@ -6162,7 +6562,6 @@ export interface components {
             block_on_official_review_requests?: boolean;
             block_on_outdated_branch?: boolean;
             block_on_rejected_reviews?: boolean;
-            /** @description Deprecated: true */
             branch_name?: string;
             dismiss_stale_approvals?: boolean;
             enable_approvals_whitelist?: boolean;
@@ -6188,10 +6587,7 @@ export interface components {
         CreateBranchRepoOption: {
             /** @description Name of the branch to create */
             new_branch_name: string;
-            /**
-             * @description Deprecated: true
-             *     Name of the old branch to create from
-             */
+            /** @description Name of the old branch to create from */
             old_branch_name?: string;
             /** @description Name of the old branch/tag/commit to create from */
             old_ref_name?: string;
@@ -6213,6 +6609,8 @@ export interface components {
             /** @description content must be base64 encoded */
             content: string;
             dates?: components["schemas"]["CommitDateOptions"];
+            /** @description (optional) will do a force-push if the new branch already exists */
+            force_overwrite_new_branch?: boolean;
             /** @description message (optional) for the commit of this file. if not supplied, a default message will be used */
             message?: string;
             /** @description new_branch (optional) will make a new branch from `branch` before creating the file */
@@ -6357,6 +6755,11 @@ export interface components {
             body?: string;
             /**
              * Format: int64
+             * @description number of additional lines after the commented line (0 = single line comment)
+             */
+            extra_lines_count?: number;
+            /**
+             * Format: int64
              * @description if comment to new file line or 0
              */
             new_position?: number;
@@ -6426,7 +6829,7 @@ export interface components {
             default_branch?: string;
             /** @description Description of the repository to create */
             description?: string;
-            /** @description Gitignores to use */
+            /** @description Gitignores to use, separated by commas */
             gitignores?: string;
             /** @description Label-Set to use */
             issue_labels?: string;
@@ -6479,6 +6882,7 @@ export interface components {
             /** @enum {string} */
             permission?: "read" | "write" | "admin";
             /**
+             * @description Deprecated: This variable should be replaced by UnitsMap and will be dropped in later versions.
              * @example [
              *       "repo.actions",
              *       "repo.code",
@@ -6521,7 +6925,7 @@ export interface components {
              */
             created_at?: string;
             /** Format: email */
-            email: string;
+            email?: string;
             full_name?: string;
             login_name?: string;
             must_change_password?: boolean;
@@ -6576,6 +6980,8 @@ export interface components {
             branch?: string;
             committer?: components["schemas"]["Identity"];
             dates?: components["schemas"]["CommitDateOptions"];
+            /** @description (optional) will do a force-push if the new branch already exists */
+            force_overwrite_new_branch?: boolean;
             /** @description message (optional) for the commit of this file. if not supplied, a default message will be used */
             message?: string;
             /** @description new_branch (optional) will make a new branch from `branch` before creating the file */
@@ -6682,7 +7088,7 @@ export interface components {
         /** @description EditDeadlineOption options for creating a deadline */
         EditDeadlineOption: {
             /** Format: date-time */
-            due_date: string;
+            due_date?: string;
         };
         /** @description EditGitHookOption options when modifying one Git hook */
         EditGitHookOption: {
@@ -6885,6 +7291,7 @@ export interface components {
             /** @enum {string} */
             permission?: "read" | "write" | "admin";
             /**
+             * @description Deprecated: This variable should be replaced by UnitsMap and will be dropped in later versions.
              * @example [
              *       "repo.code",
              *       "repo.issues",
@@ -7259,12 +7666,15 @@ export interface components {
             /** Format: date-time */
             updated_at?: string;
         };
+        IssueLockOption: {
+            reason?: string;
+        };
         /** @description IssueMeta basic issue information */
         IssueMeta: {
             /** Format: int64 */
-            index?: number;
-            owner?: string;
-            repo?: string;
+            index: number;
+            owner: string;
+            repo: string;
         };
         /** @description IssueTemplate represents an issue template for a repository */
         IssueTemplate: {
@@ -7323,68 +7733,28 @@ export interface components {
         };
         /** @description MarkdownOption markdown options */
         MarkdownOption: {
-            /**
-             * @description Context to render
-             *
-             *     in: body
-             */
+            /** @description Context to render */
             Context?: string;
-            /**
-             * @description Mode to render (comment, gfm, markdown)
-             *
-             *     in: body
-             */
+            /** @description Mode to render (comment, gfm, markdown) */
             Mode?: string;
-            /**
-             * @description Text markdown to render
-             *
-             *     in: body
-             */
+            /** @description Text markdown to render */
             Text?: string;
-            /**
-             * @description Is it a wiki page ?
-             *
-             *     in: body
-             */
+            /** @description Is it a wiki page ? */
             Wiki?: boolean;
         };
         /** @description MarkupOption markup options */
         MarkupOption: {
-            /**
-             * @description The current branch path where the form gets posted
-             *
-             *     in: body
-             */
+            /** @description The current branch path where the form gets posted */
             BranchPath?: string;
-            /**
-             * @description Context to render
-             *
-             *     in: body
-             */
+            /** @description Context to render */
             Context?: string;
-            /**
-             * @description File path for detecting extension in file mode
-             *
-             *     in: body
-             */
+            /** @description File path for detecting extension in file mode */
             FilePath?: string;
-            /**
-             * @description Mode to render (comment, gfm, markdown, file)
-             *
-             *     in: body
-             */
+            /** @description Mode to render (comment, gfm, markdown, file) */
             Mode?: string;
-            /**
-             * @description Text markup to render
-             *
-             *     in: body
-             */
+            /** @description Text markup to render */
             Text?: string;
-            /**
-             * @description Is it a wiki page ?
-             *
-             *     in: body
-             */
+            /** @description Is it a wiki page ? */
             Wiki?: boolean;
         };
         /** @description MergePullRequestForm form for merging Pull Request */
@@ -7423,7 +7793,7 @@ export interface components {
             /** @description Name of User or Organisation who will own Repo after migration */
             repo_owner?: string;
             /** @enum {string} */
-            service?: "git" | "github" | "gitea" | "gitlab" | "gogs" | "onedev" | "gitbucket" | "codebase";
+            service?: "git" | "github" | "gitea" | "gitlab" | "gogs" | "onedev" | "gitbucket" | "codebase" | "forgejo" | "pagure" | "bitbucketdc";
             /**
              * Format: int64
              * @description deprecated (only for backwards compatibility)
@@ -7547,6 +7917,8 @@ export interface components {
         /** @description Organization represents an organization */
         Organization: {
             avatar_url?: string;
+            /** Format: date-time */
+            created?: string;
             description?: string;
             email?: string;
             full_name?: string;
@@ -7651,8 +8023,11 @@ export interface components {
             key_type?: string;
             read_only?: boolean;
             title?: string;
+            /** Format: date-time */
+            updated_at?: string;
             url?: string;
             user?: components["schemas"]["User"];
+            verified?: boolean;
         };
         /** @description PullRequest represents a pull request */
         PullRequest: {
@@ -7748,6 +8123,11 @@ export interface components {
             /** Format: date-time */
             created_at?: string;
             diff_hunk?: string;
+            /**
+             * Format: int64
+             * @description number of additional lines after the commented line (0 = single line comment)
+             */
+            extra_lines_count?: number;
             html_url?: string;
             /** Format: int64 */
             id?: number;
@@ -7943,7 +8323,7 @@ export interface components {
         RegisterRunnerOptions: {
             /** @description Description of the runner to register. */
             description?: string;
-            /** @description Register as ephemeral runner https://forgejo.org/docs/latest/admin/actions/security/#ephemeral-runner */
+            /** @description Register as ephemeral runner https://forgejo.org/docs/latest/admin/actions/security/#ephemeral-runners */
             ephemeral?: boolean;
             /** @description Name of the runner to register. The name of the runner does not have to be unique. */
             name: string;
@@ -8216,6 +8596,7 @@ export interface components {
             /** @enum {string} */
             permission?: "none" | "read" | "write" | "admin" | "owner";
             /**
+             * @description Deprecated: This variable should be replaced by UnitsMap and will be dropped in later versions.
              * @example [
              *       "repo.code",
              *       "repo.issues",
@@ -8354,6 +8735,8 @@ export interface components {
             /** @description content must be base64 encoded */
             content: string;
             dates?: components["schemas"]["CommitDateOptions"];
+            /** @description (optional) will do a force-push if the new branch already exists */
+            force_overwrite_new_branch?: boolean;
             /** @description from_path (optional) is the path of the original file which will be moved/renamed to the path in the URL */
             from_path?: string;
             /** @description message (optional) for the commit of this file. if not supplied, a default message will be used */
@@ -8541,12 +8924,20 @@ export interface components {
         /** @description AccessToken represents an API access token. */
         AccessToken: {
             headers: {
+                created_at?: string;
+                id?: number;
+                name?: string;
+                /**
+                 * @description Indicates that an access token only has access to the specified repositories.  Will be null if the access token
+                 *     is not limited to a set of specified repositories.
+                 */
+                repositories?: unknown[];
+                scopes?: string[];
+                sha1?: string;
+                token_last_eight?: string;
                 [name: string]: unknown;
             };
-            content: {
-                "application/json": components["schemas"]["AccessToken"];
-                "text/html": components["schemas"]["AccessToken"];
-            };
+            content?: never;
         };
         /** @description AccessTokenList */
         AccessTokenList: {
@@ -8560,6 +8951,26 @@ export interface components {
                 "text/html": components["schemas"]["AccessToken"][];
             };
         };
+        /** @description ActionArtifact */
+        ActionArtifact: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["ActionArtifact"];
+                "text/html": components["schemas"]["ActionArtifact"];
+            };
+        };
+        /** @description ActionArtifactList */
+        ActionArtifactList: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["ActionArtifact"][];
+                "text/html": components["schemas"]["ActionArtifact"][];
+            };
+        };
         /** @description ActionRun */
         ActionRun: {
             headers: {
@@ -8568,6 +8979,26 @@ export interface components {
             content: {
                 "application/json": components["schemas"]["ActionRun"];
                 "text/html": components["schemas"]["ActionRun"];
+            };
+        };
+        /** @description ActionRunJob is a single workflow run job */
+        ActionRunJob: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["ActionRunJob"];
+                "text/html": components["schemas"]["ActionRunJob"];
+            };
+        };
+        /** @description ActionRunJobList */
+        ActionRunJobList: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["ActionRunJob"][];
+                "text/html": components["schemas"]["ActionRunJob"][];
             };
         };
         /** @description ActionRunList */
@@ -9367,21 +9798,23 @@ export interface components {
                 "text/html": components["schemas"]["NotificationThread"][];
             };
         };
-        /** @description OAuth2Application */
+        /** @description OAuth2Application represents an OAuth2 application. */
         OAuth2Application: {
             headers: {
+                client_id?: string;
+                client_secret?: string;
+                confidential_client?: boolean;
+                created?: string;
+                id?: number;
+                name?: string;
+                redirect_uris?: string[];
                 [name: string]: unknown;
             };
-            content: {
-                "application/json": components["schemas"]["OAuth2Application"];
-                "text/html": components["schemas"]["OAuth2Application"];
-            };
+            content?: never;
         };
-        /** @description OAuth2ApplicationList */
+        /** @description OAuth2ApplicationList represents a list of OAuth2 applications. */
         OAuth2ApplicationList: {
             headers: {
-                /** @description The total number of OAuth2 applications */
-                "X-Total-Count"?: number;
                 [name: string]: unknown;
             };
             content: {
@@ -10176,7 +10609,10 @@ export interface components {
             headers: {
                 [name: string]: unknown;
             };
-            content?: never;
+            content: {
+                "application/json": boolean;
+                "text/html": boolean;
+            };
         };
         /** @description APIConflict is a conflict empty response */
         conflict: {
@@ -10333,6 +10769,11 @@ export interface components {
                 "application/json": components["schemas"]["CreateKeyOption"];
             };
         };
+        CreateAccessTokenOption: {
+            content: {
+                "application/json": components["schemas"]["CreateAccessTokenOption"];
+            };
+        };
         CreateOrgOption: {
             content: {
                 "application/json": components["schemas"]["CreateOrgOption"];
@@ -10450,6 +10891,18 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    getActionsRun: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["ActionRun"];
+        };
+    };
     activitypubInstanceActor: {
         parameters: {
             query?: never;
@@ -11244,6 +11697,8 @@ export interface operations {
                 source_id?: number;
                 /** @description user's login name to search for */
                 login_name?: string;
+                /** @description whether or not to filter users with the 2fa enabled */
+                is_2fa_enabled?: boolean;
                 /** @description sort order of results */
                 sort?: "oldest" | "newest" | "alphabetically" | "reversealphabetically" | "recentupdate" | "leastupdate";
                 /** @description page number of results to return (1-based) */
@@ -11498,6 +11953,66 @@ export interface operations {
             404: components["responses"]["notFound"];
             409: components["responses"]["error"];
             422: components["responses"]["validationError"];
+        };
+    };
+    adminListUserAccessTokens: {
+        parameters: {
+            query?: {
+                /** @description page number of results to return (1-based) */
+                page?: number;
+                /** @description page size of results */
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                /** @description username of user */
+                username: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["AccessTokenList"];
+            403: components["responses"]["forbidden"];
+            404: components["responses"]["notFound"];
+        };
+    };
+    adminCreateUserAccessToken: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description username of user */
+                username: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: components["requestBodies"]["CreateAccessTokenOption"];
+        responses: {
+            201: components["responses"]["AccessToken"];
+            400: components["responses"]["error"];
+            403: components["responses"]["forbidden"];
+            404: components["responses"]["notFound"];
+        };
+    };
+    adminDeleteUserAccessToken: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description username of user */
+                username: string;
+                /** @description token to be deleted, identified by ID and if not available by name */
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: components["responses"]["empty"];
+            403: components["responses"]["forbidden"];
+            404: components["responses"]["notFound"];
+            422: components["responses"]["error"];
         };
     };
     listGitignoresTemplates: {
@@ -13133,7 +13648,7 @@ export interface operations {
                 private?: boolean;
                 /** @description show only public, private or all repositories (defaults to all) */
                 is_private?: boolean;
-                /** @description include template repositories this user has access to (defaults to true) */
+                /** @description show only template, non-template or all repositories (defaults to all) */
                 template?: boolean;
                 /** @description show only archived, non-archived or all repositories (defaults to all) */
                 archived?: boolean;
@@ -13221,6 +13736,212 @@ export interface operations {
             403: components["responses"]["forbidden"];
             404: components["responses"]["notFound"];
             422: components["responses"]["validationError"];
+        };
+    };
+    ListActionArtifacts: {
+        parameters: {
+            query?: {
+                /** @description filter by artifact name */
+                name?: string;
+                /** @description page number of results to return (1-based) */
+                page?: number;
+                /** @description page size of results, default maximum page size is 50 */
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                /** @description owner of the repo */
+                owner: string;
+                /** @description name of the repo */
+                repo: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["ActionArtifactList"];
+            400: components["responses"]["error"];
+            403: components["responses"]["forbidden"];
+        };
+    };
+    GetActionArtifact: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description owner of the repo */
+                owner: string;
+                /** @description name of the repo */
+                repo: string;
+                /** @description ID of the artifact */
+                artifact_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["ActionArtifact"];
+            400: components["responses"]["error"];
+            403: components["responses"]["forbidden"];
+            404: components["responses"]["notFound"];
+        };
+    };
+    DeleteActionArtifact: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description owner of the repo */
+                owner: string;
+                /** @description name of the repo */
+                repo: string;
+                /** @description ID of the artifact */
+                artifact_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description artifact marked for deletion */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            400: components["responses"]["error"];
+            403: components["responses"]["forbidden"];
+            404: components["responses"]["notFound"];
+        };
+    };
+    DownloadActionArtifact: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description owner of the repo */
+                owner: string;
+                /** @description name of the repo */
+                repo: string;
+                /** @description ID of the artifact */
+                artifact_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description the artifact archive */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            400: components["responses"]["error"];
+            403: components["responses"]["forbidden"];
+            404: components["responses"]["notFound"];
+        };
+    };
+    repoGetActionJob: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description owner of the repo */
+                owner: string;
+                /** @description name of the repo */
+                repo: string;
+                /** @description ID of the workflow job */
+                job_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["ActionRunJob"];
+            401: components["responses"]["unauthorized"];
+            403: components["responses"]["forbidden"];
+            404: components["responses"]["notFound"];
+        };
+    };
+    repoGetActionJobLogs: {
+        parameters: {
+            query?: {
+                /** @description 1-based attempt number matching the value of `attempt` in the job listing; omit to fetch the latest attempt of the job */
+                attempt?: number;
+                /** @description Step number to filter to. Use the `number` field from `GET /repos/{owner}/{repo}/actions/jobs/{job_id}` — 0 is the "Set up job" entry, the last index is the "Complete job" entry, real steps are in between. Returns only that step's slice of the log. Range requests still work over the slice. */
+                step?: number;
+                /** @description Substring filter applied to each line's content (the part after the timestamp prefix). Plain string match — regex is not supported. Setting `q` drops `Accept-Ranges` and disables `Range:` support; the full filtered body is always returned. */
+                q?: string;
+                /** @description Case-insensitive substring match (only meaningful when `q` is set). */
+                qi?: boolean;
+                /** @description Response shape. `text` (default) returns log content as plaintext lines. `ndjson` returns one `{"time":"...","content":"..."}` object per emitted line, separated by `\n` (content-type `application/x-ndjson`). `format=ndjson` drops `Accept-Ranges` and disables `Range:` support. */
+                format?: "text" | "ndjson";
+            };
+            header?: never;
+            path: {
+                /** @description owner of the repo */
+                owner: string;
+                /** @description name of the repo */
+                repo: string;
+                /** @description ID of the workflow job */
+                job_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Plaintext log content (or NDJSON when `format=ndjson`) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/plain": string;
+                    "application/x-ndjson": string;
+                };
+            };
+            /** @description Partial log content (Range request; not returned when `q` or `format=ndjson` is set) */
+            206: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/plain": string;
+                    "application/x-ndjson": string;
+                };
+            };
+            401: components["responses"]["unauthorized"];
+            403: components["responses"]["forbidden"];
+            404: components["responses"]["notFound"];
+        };
+    };
+    repoRerunActionJob: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description owner of the repo */
+                owner: string;
+                /** @description name of the repo */
+                repo: string;
+                /** @description ID of the workflow job */
+                job_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Workflow job rerun has been started */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            400: components["responses"]["error"];
+            403: components["responses"]["forbidden"];
+            404: components["responses"]["notFound"];
         };
     };
     getRepoRunners: {
@@ -13408,6 +14129,170 @@ export interface operations {
         requestBody?: never;
         responses: {
             200: components["responses"]["ActionRun"];
+            400: components["responses"]["error"];
+            403: components["responses"]["forbidden"];
+            404: components["responses"]["notFound"];
+        };
+    };
+    DeleteActionRun: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description owner of the repo */
+                owner: string;
+                /** @description name of the repo */
+                repo: string;
+                /** @description id of the action run */
+                run_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Workflow run has been removed */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            400: components["responses"]["error"];
+            403: components["responses"]["forbidden"];
+            404: components["responses"]["notFound"];
+        };
+    };
+    ListActionRunArtifacts: {
+        parameters: {
+            query?: {
+                /** @description filter by artifact name */
+                name?: string;
+                /** @description page number of results to return (1-based) */
+                page?: number;
+                /** @description page size of results, default maximum page size is 50 */
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                /** @description owner of the repo */
+                owner: string;
+                /** @description name of the repo */
+                repo: string;
+                /** @description ID of the workflow run */
+                run_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["ActionArtifactList"];
+            400: components["responses"]["error"];
+            403: components["responses"]["forbidden"];
+            404: components["responses"]["notFound"];
+        };
+    };
+    CancelActionRun: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description owner of the repo */
+                owner: string;
+                /** @description name of the repo */
+                repo: string;
+                /** @description ID of the workflow run */
+                run_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Workflow run has been cancelled */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            403: components["responses"]["forbidden"];
+            404: components["responses"]["notFound"];
+        };
+    };
+    ListActionRunJobs: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description owner of the repo */
+                owner: string;
+                /** @description name of the repo */
+                repo: string;
+                /** @description ID of the workflow run */
+                run_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["ActionRunJobList"];
+            400: components["responses"]["error"];
+            403: components["responses"]["forbidden"];
+            404: components["responses"]["notFound"];
+        };
+    };
+    repoGetActionRunLogs: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description owner of the repo */
+                owner: string;
+                /** @description name of the repo */
+                repo: string;
+                /** @description ID of the workflow run. The ZIP contains the latest attempt of each job in the run, with each entry named `{job-name}-{job-id}-attempt-{N}.log` (the job ID prevents collisions when two jobs share a name; the attempt number records which run the log came from). The run itself has no attempt number — jobs are re-run independently, so use the per-job logs endpoint with `?attempt` to fetch a specific historical attempt of one job. */
+                run_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description ZIP archive of per-job log files */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/zip": string;
+                };
+            };
+            401: components["responses"]["unauthorized"];
+            403: components["responses"]["forbidden"];
+            404: components["responses"]["notFound"];
+        };
+    };
+    RerunActionRun: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description owner of the repo */
+                owner: string;
+                /** @description name of the repo */
+                repo: string;
+                /** @description ID of the workflow run */
+                run_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Workflow rerun has been started */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
             400: components["responses"]["error"];
             403: components["responses"]["forbidden"];
             404: components["responses"]["notFound"];
@@ -13701,6 +14586,7 @@ export interface operations {
         responses: {
             201: components["responses"]["DispatchWorkflowRun"];
             204: components["responses"]["empty"];
+            400: components["responses"]["error"];
             404: components["responses"]["notFound"];
         };
     };
@@ -14184,7 +15070,7 @@ export interface operations {
                 files?: boolean;
                 /** @description page number of results to return (1-based) */
                 page?: number;
-                /** @description page size of results (ignored if used with 'path') */
+                /** @description page size of results */
                 limit?: number;
                 /** @description commits that match the given specifier will not be listed. */
                 not?: string;
@@ -14283,7 +15169,12 @@ export interface operations {
     };
     repoCompareDiff: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description include verification status for each commit */
+                verification?: boolean;
+                /** @description include which files changed by a commit */
+                files?: boolean;
+            };
             header?: never;
             path: {
                 /** @description owner of the repo */
@@ -16162,6 +17053,55 @@ export interface operations {
             422: components["responses"]["validationError"];
         };
     };
+    lockIssue: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description owner of the repo */
+                owner: string;
+                /** @description name of the repo */
+                repo: string;
+                /** @description index of the issue to lock */
+                index: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["IssueLockOption"];
+                "text/plain": components["schemas"]["IssueLockOption"];
+            };
+        };
+        responses: {
+            204: components["responses"]["empty"];
+            403: components["responses"]["forbidden"];
+            404: components["responses"]["notFound"];
+            409: components["responses"]["conflict"];
+        };
+    };
+    unlockIssue: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description owner of the repo */
+                owner: string;
+                /** @description name of the repo */
+                repo: string;
+                /** @description index of the issue to unlock */
+                index: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: components["responses"]["empty"];
+            403: components["responses"]["forbidden"];
+            404: components["responses"]["notFound"];
+            409: components["responses"]["conflict"];
+        };
+    };
     pinIssue: {
         parameters: {
             query?: never;
@@ -17126,6 +18066,10 @@ export interface operations {
                 labels?: number[];
                 /** @description Filter by pull request author */
                 poster?: string;
+                /** @description Filter by base branch name */
+                base?: string;
+                /** @description Filter by head branch name */
+                head?: string;
                 /** @description Page number of results to return (1-based) */
                 page?: number;
                 /** @description Page size of results */
@@ -19410,6 +20354,7 @@ export interface operations {
         responses: {
             204: components["responses"]["empty"];
             404: components["responses"]["notFound"];
+            409: components["responses"]["forbidden"];
         };
     };
     orgRemoveTeamMember: {
@@ -19668,6 +20613,25 @@ export interface operations {
             404: components["responses"]["notFound"];
         };
     };
+    userListActionsSecrets: {
+        parameters: {
+            query?: {
+                /** @description page number of results to return (1-based) */
+                page?: number;
+                /** @description page size of results */
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["SecretList"];
+            401: components["responses"]["unauthorized"];
+            404: components["responses"]["notFound"];
+        };
+    };
     updateUserSecret: {
         parameters: {
             query?: never;
@@ -19856,6 +20820,26 @@ export interface operations {
                 content?: never;
             };
             400: components["responses"]["error"];
+            401: components["responses"]["unauthorized"];
+            403: components["responses"]["forbidden"];
+            404: components["responses"]["notFound"];
+        };
+    };
+    userCurrentActivityPubFollow: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["APRemoteFollowOption"];
+                "text/plain": components["schemas"]["APRemoteFollowOption"];
+            };
+        };
+        responses: {
+            204: components["responses"]["empty"];
             401: components["responses"]["unauthorized"];
             403: components["responses"]["forbidden"];
             404: components["responses"]["notFound"];
@@ -21126,11 +22110,7 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: {
-            content: {
-                "application/json": components["schemas"]["CreateAccessTokenOption"];
-            };
-        };
+        requestBody?: components["requestBodies"]["CreateAccessTokenOption"];
         responses: {
             201: components["responses"]["AccessToken"];
             400: components["responses"]["error"];
