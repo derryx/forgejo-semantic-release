@@ -10,7 +10,7 @@ jobs:
   build:
     runs-on: codeberg-medium
     container:
-      image: node:24-alpine
+      image: node:26-alpine
     steps:
       - name: Checkout
         uses: https://forgejo.peuss.de/actions/checkout@v7
@@ -102,7 +102,7 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: codeberg-medium
     container:
-      image: node:24-alpine
+      image: node:26-alpine
     steps:
       - name: Install git
         run: apk add --no-cache git
